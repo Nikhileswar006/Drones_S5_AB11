@@ -20,7 +20,6 @@ addpath(fullfile(projectDir, 'Utils'));
 
 disp('===================================================================');
 disp('   QUATERNION-BASED BACKSTEPPING ATTITUDE CONTROL OF QUADROTOR UAV');
-disp('   Reproduction with Exact Published Paper Parameters & Eq 22 (tau2)');
 disp('===================================================================');
 
 %% 2. Load System Parameters & Initial Conditions
