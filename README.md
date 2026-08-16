@@ -626,6 +626,46 @@ Simulink can also be used to represent the same controller using interconnected 
 
 ---
 
+## 21. Suggested Project Structure
+
+```text
+DRONES_SIMULATION/
+├── main.m
+├── parameters.m
+├── create_simulink_model.m
+│
+├── Quaternion/
+│   ├── quatMultiply.m
+│   ├── quatConjugate.m
+│   ├── quatNormalize.m
+│   └── quatInverse.m
+│
+├── Controller/
+│   ├── quaternionError.m
+│   ├── angularVelocityError.m
+│   ├── desiredOmegaError.m
+│   ├── deltaError.m
+│   ├── desiredOmegaDerivative.m
+│   ├── torque1.m
+│   ├── torque2.m
+│   └── totalTorque.m
+│
+├── Dynamics/
+│   ├── quaternionDynamics.m
+│   └── angularDynamics.m
+│
+├── Simulation/
+│   ├── simulate.m
+│   └── plotResults.m
+│
+├── Utils/
+│   ├── quaternionToEuler.m
+│   └── eulerToQuaternion.m
+│
+└── README.md
+```
+
+
 
 # 22. Main Program Flow
 
