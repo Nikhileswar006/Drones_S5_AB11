@@ -626,39 +626,43 @@ Simulink can also be used to represent the same controller using interconnected 
 
 ---
 
-# 21. Suggested Project Structure
+## 21. Suggested Project Structure
 
+```text
 DRONES_SIMULATION/
-├── main.m                                # Master simulation script
-├── parameters.m                          # Physical UAV constants & controller gains
-├── create_simulink_model.m               # Script to build & open Simulink .slx model
-├── Quaternion/                           # Quaternion algebra functions
-│   ├── quatMultiply.m                   # Hamilton product q1 x q2
-│   ├── quatConjugate.m                  # Quaternion conjugate q*
-│   ├── quatNormalize.m                  # Unit normalization q / ||q||
-│   └── quatInverse.m                    # Quaternion inverse q^-1
-├── Controller/                           # Backstepping controller equations
-│   ├── quaternionError.m                # Eq.(10): Attitude error quaternion q_err
-│   ├── angularVelocityError.m           # Eq.(11): Angular velocity error w_err
-│   ├── desiredOmegaError.m              # Eq.(13): Virtual control w_err_d
-│   ├── deltaError.m                     # Eq.(16): Backstepping error delta
-│   ├── desiredOmegaDerivative.m         # Eq.(15): Time derivative d(w_err_d)/dt
-│   ├── torque1.m                        # Eq.(21): Feedback cancellation torque tau1
-│   ├── torque2.m                        # Eq.(22): Stabilizing control torque tau2
-│   └── totalTorque.m                    # Eq.(23): Total torque tau = tau1 + tau2
-├── Dynamics/                             # Quadrotor physical dynamics
-│   ├── quaternionDynamics.m             # Eq.(8): Kinematic derivative dq/dt
-│   └── angularDynamics.m                # Eq.(9): Rotational derivative dw/dt
-├── Simulation/                           # ODE integration & visualization
-│   ├── simulate.m                       # 13-Step numerical simulation solver (ode45)
-│   └── plotResults.m                    # Paper trajectory tracking figures (Fig 3-12)
-├── Utils/                                # Coordinate transformations
-│   ├── quaternionToEuler.m              # Quat to Roll-Pitch-Yaw (rad)
-│   └── eulerToQuaternion.m              # Roll-Pitch-Yaw to Quat
-└── README.md                            # Comprehensive project guide
-
----
-
+├── main.m                         # Master simulation script
+├── parameters.m                   # Physical UAV constants & controller gains
+├── create_simulink_model.m        # Script to build & open Simulink .slx model
+│
+├── Quaternion/                    # Quaternion algebra functions
+│   ├── quatMultiply.m             # Hamilton product q1 × q2
+│   ├── quatConjugate.m            # Quaternion conjugate q*
+│   ├── quatNormalize.m            # Unit normalization q / ||q||
+│   └── quatInverse.m              # Quaternion inverse q⁻¹
+│
+├── Controller/                    # Backstepping controller equations
+│   ├── quaternionError.m          # Eq.(10): Attitude error quaternion q_err
+│   ├── angularVelocityError.m     # Eq.(11): Angular velocity error w_err
+│   ├── desiredOmegaError.m        # Eq.(13): Virtual control w_err_d
+│   ├── deltaError.m               # Eq.(16): Backstepping error delta
+│   ├── desiredOmegaDerivative.m   # Eq.(15): Time derivative d(w_err_d)/dt
+│   ├── torque1.m                  # Eq.(21): Feedback cancellation torque τ₁
+│   ├── torque2.m                  # Eq.(22): Stabilizing control torque τ₂
+│   └── totalTorque.m              # Eq.(23): Total torque τ = τ₁ + τ₂
+│
+├── Dynamics/                      # Quadrotor physical dynamics
+│   ├── quaternionDynamics.m       # Eq.(8): Kinematic derivative dq/dt
+│   └── angularDynamics.m          # Eq.(9): Rotational derivative dw/dt
+│
+├── Simulation/                    # ODE integration & visualization
+│   ├── simulate.m                 # 13-Step numerical simulation solver (ode45)
+│   └── plotResults.m              # Paper trajectory tracking figures (Fig 3–12)
+│
+├── Utils/                         # Coordinate transformations
+│   ├── quaternionToEuler.m        # Quaternion to Roll-Pitch-Yaw (rad)
+│   └── eulerToQuaternion.m        # Roll-Pitch-Yaw to Quaternion
+│
+└── README.md                      # Comprehensive project guide
 # 22. Main Program Flow
 
 The main MATLAB program should perform:
