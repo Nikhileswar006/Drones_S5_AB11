@@ -746,37 +746,10 @@ These results demonstrate that the proposed controller successfully tracks the d
 
 ---
 
-# 25. Why No Dataset Is Required
+.
 
-This project is not a machine-learning system.
 
-It does not train a model using:
-
-- Images
-- Sensor datasets
-- CSV datasets
-- Training data
-- Testing data
-
-Instead, it uses a mathematical model of the quadrotor.
-
-The simulation generates the reference trajectory mathematically and solves the UAV differential equations numerically.
-
-Therefore:
-
-    Mathematical Model
-          +
-    Reference Trajectory
-          +
-    Controller
-          ↓
-    Numerical Simulation
-          ↓
-    Tracking Results
-
----
-
-# 26. Important Variables
+# 25. Important Variables
 
 | Symbol | Meaning |
 |--------|---------|
@@ -798,7 +771,7 @@ Therefore:
 
 ---
 
-# 27. Key Concepts
+# 26. Key Concepts
 
 The project combines four major concepts:
 
@@ -824,7 +797,7 @@ is used in the final error feedback law.
 
 ---
 
-# 28. Complete Mathematical Flow
+# 27. Complete Mathematical Flow
 
     q, ω
      │
@@ -862,7 +835,7 @@ is used in the final error feedback law.
 
 ---
 
-# 29. Project Workflow in Simple Words
+# 28. Project Workflow in Simple Words
 
 The project can be summarized as:
 
@@ -882,7 +855,7 @@ The project can be summarized as:
 
 ---
 
-# 30. Advantages of the Proposed Approach
+# 29. Advantages of the Proposed Approach
 
 - Quaternion-based attitude representation.
 - Avoids gimbal-lock problems associated with Euler-angle representation.
@@ -894,7 +867,7 @@ The project can be summarized as:
 
 ---
 
-# 31. Limitations of the Current Project
+# 30. Limitations of the Current Project
 
 The current work is primarily a numerical simulation.
 
@@ -913,7 +886,7 @@ These can be considered future extensions.
 
 ---
 
-# 32. Future Scope
+# 31. Future Scope
 
 Possible future improvements include:
 
@@ -930,7 +903,7 @@ The paper itself states that experimental testing is planned as future work.
 
 ---
 
-# 33. Conclusion
+# 32. Conclusion
 
 This project develops and simulates a quaternion-based backstepping attitude tracking controller for a quadrotor UAV.
 
