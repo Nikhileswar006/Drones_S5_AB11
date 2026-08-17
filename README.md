@@ -369,7 +369,9 @@ The controller aims to achieve:
 Differentiating the angular velocity error:
 
     ωerr_dot = ω_dot - ωref_dot
-    $$\dot{omega}_{err} = \dot{omega} - \dot{omega}_ref$$
+    $$
+    \dot{omega}_{err} = \dot{omega} - \dot{omega}_ref
+    $$
 
 The dynamics of δ become:
 
@@ -437,7 +439,7 @@ Purpose:
 
 # 15. Final Error Dynamics
 
-Substituting τ1 and τ2 into the error dynamics gives:
+Substituting τ1 and τ2 into the error dynamics gives:\dot{omega}
 
     δ_dot = -k2 δ^(1/3)
 
