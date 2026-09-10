@@ -84,20 +84,20 @@ A quaternion represents a 3D orientation using four components.
 
 The quaternion is written as:
 
-    q = [q<sub>0</sub>, q<sub>1</sub>, q<sub>2</sub>, q<sub>3</sub>]<sup>T</sup>
+    q = [q₀, q₁, q₂, q₃]ᵀ
 
 It can also be written as:
 
-    q = q<sub>0</sub> + i q<sub>1</sub> + j q<sub>2</sub> + k q<sub>3</sub>
+    q = q₀ + i q₁ + j q₂ + k q₃
 
 where:
 
-- q<sub>0</sub> is the scalar component.
-- q<sub>1</sub>, q<sub>2</sub>, q<sub>3</sub> are the vector components.
+- q₀ is the scalar component.
+- q₁, q₂, q₃ are the vector components.
 
 For a unit quaternion:
 
-    ||q|| = √(q<sub>0</sub><sup>2</sup> + q<sub>1</sub><sup>2</sup> + q<sub>2</sub><sup>2</sup> + q<sub>3</sub><sup>2</sup>) = 1
+    ||q|| = √(q₀² + q₁² + q₂² + q₃²) = 1
 
 Quaternions are useful because they:
 
@@ -145,7 +145,7 @@ The complete project follows a closed-loop architecture:
     ┌──────────────────────────────┐
     │   Quaternion Error Calculator│
     │                              │
-    │ q<sub>err</sub> = q<sub>ref</sub>* ⊗ q             │
+    │ qₑᵣᵣ = qᵣₑ𝒻* ⊗ q              │
     └──────────────┬───────────────┘
                    │
                    ▼
@@ -186,12 +186,12 @@ The complete project follows a closed-loop architecture:
 
 The attitude is represented by:
 
-    q = [q<sub>0</sub>, q<sub>1</sub>, q<sub>2</sub>, q<sub>3</sub>]<sup>T</sup>
+    q = [q₀, q₁, q₂, q₃]ᵀ
 
 where:
 
-- q<sub>0</sub> is the scalar component.
-- q<sub>1</sub>, q<sub>2</sub>, q<sub>3</sub> are the vector components.
+- q₀ is the scalar component.
+- q₁, q₂, q₃ are the vector components.
 
 For a valid unit quaternion:
 
@@ -203,15 +203,15 @@ For a valid unit quaternion:
 
 The quaternion conjugate is:
 
-    q* = [q<sub>0</sub>, -q<sub>1</sub>, -q<sub>2</sub>, -q<sub>3</sub>]<sup>T</sup>
+    q* = [q₀, -q₁, -q₂, -q₃]ᵀ
 
 The general quaternion inverse is:
 
-    q<sup>-1</sup> = q* / ||q||<sup>2</sup>
+    q⁻¹ = q* / ||q||²
 
 For a unit quaternion:
 
-    q<sup>-1</sup> = q*
+    q⁻¹ = q*
 
 The conjugate is used when calculating the attitude error.
 
@@ -221,7 +221,7 @@ The conjugate is used when calculating the attitude error.
 
 A quaternion can be normalized using:
 
-    q<sub>normalized</sub> = q / ||q||
+    qₙₒᵣₘ = q / ||q||
 
 Normalization is useful in numerical simulation to keep the quaternion close to unit length.
 
@@ -231,17 +231,16 @@ Normalization is useful in numerical simulation to keep the quaternion close to 
 
 Quaternion multiplication is written as:
 
-    q<sub>1</sub> ⊗ q<sub>2</sub>
+    q₁ ⊗ q₂
 
 For:
 
-    q<sub>1</sub> = [a, b, c, d]<sup>T</sup>
-    q<sub>2</sub> = [e, f, g, h]<sup>T</sup>
+    q₁ = [a, b, c, d]ᵀ
+    q₂ = [e, f, g, h]ᵀ
 
 the product is:
 
-    q<sub>1</sub> ⊗ q<sub>2</sub> =
-
+    q₁ ⊗ q₂ =
     [
     ae - bf - cg - dh
     af + be + ch - dg
@@ -251,7 +250,7 @@ the product is:
 
 Quaternion multiplication is non-commutative:
 
-    q<sub>1</sub> ⊗ q<sub>2</sub> ≠ q<sub>2</sub> ⊗ q<sub>1</sub>
+    q₁ ⊗ q₂ ≠ q₂ ⊗ q₁
 
 Therefore, the order of quaternion multiplication must be maintained correctly.
 
@@ -281,7 +280,7 @@ This equation describes how the UAV orientation changes according to its angular
 
 The rotational dynamics are:
 
-    ω̇ = J<sup>-1</sup> [τ - ω × (Jω)]
+    ω̇ = J⁻¹ [τ - ω × (Jω)]
 
 where:
 
@@ -301,28 +300,28 @@ This equation determines how the control torque changes the angular velocity.
 
 The attitude error is defined as:
 
-    q<sub>err</sub> = q<sub>ref</sub><sup>*</sup> ⊗ q
+    qₑᵣᵣ = qᵣₑ𝒻* ⊗ q
 
 where:
 
-- q<sub>ref</sub> = desired quaternion
+- qᵣₑ𝒻 = desired quaternion
 - q = actual quaternion
-- q<sub>ref</sub><sup>*</sup> = conjugate of the desired quaternion
+- qᵣₑ𝒻* = conjugate of the desired quaternion
 - ⊗ = quaternion multiplication
 
 When the actual and desired attitudes are equal:
 
-    q = q<sub>ref</sub>
+    q = qᵣₑ𝒻
 
 then:
 
-    q<sub>err</sub> = [1, 0, 0, 0]<sup>T</sup>
+    qₑᵣᵣ = [1, 0, 0, 0]ᵀ
 
 This represents zero attitude error.
 
 The identity quaternion is:
 
-    q<sub>I</sub> = [1, 0, 0, 0]<sup>T</sup>
+    qᵢ = [1, 0, 0, 0]ᵀ
 
 ---
 
@@ -330,16 +329,16 @@ The identity quaternion is:
 
 The angular velocity tracking error is:
 
-    ω<sub>err</sub> = ω - ω<sub>ref</sub>
+    ωₑᵣᵣ = ω - ωᵣₑ𝒻
 
 where:
 
 - ω = actual angular velocity
-- ω<sub>ref</sub> = reference angular velocity
+- ωᵣₑ𝒻 = reference angular velocity
 
 The control objective is:
 
-    ω<sub>err</sub> → 0
+    ωₑᵣᵣ → 0
 
 ---
 
@@ -347,7 +346,7 @@ The control objective is:
 
 The quaternion error dynamics are:
 
-    q̇<sub>err</sub> = 1/2 q<sub>err</sub> ⊗ [0; ω<sub>err</sub>]
+    q̇ₑᵣᵣ = 1/2 qₑᵣᵣ ⊗ [0; ωₑᵣᵣ]
 
 This equation connects the attitude error with the angular velocity tracking error.
 
@@ -369,12 +368,12 @@ The difference between the actual angular velocity error and the virtual control
 
 The second error variable is:
 
-    δ = ω<sub>err</sub> - ω<sub>err,d</sub>
+    δ = ωₑᵣᵣ - ωₑᵣᵣ,𝒹
 
 where:
 
-- ω<sub>err</sub> = angular velocity error
-- ω<sub>err,d</sub> = desired angular velocity error
+- ωₑᵣᵣ = angular velocity error
+- ωₑᵣᵣ,𝒹 = desired angular velocity error
 - δ = backstepping error
 
 ---
@@ -383,14 +382,14 @@ where:
 
 The virtual control is defined as:
 
-    [0; ω<sub>err,d</sub>] =
-    -k<sub>1</sub> q<sub>err</sub><sup>*</sup> ⊗
-    (q<sub>err</sub> - q<sub>I</sub>)
+    [0; ωₑᵣᵣ,𝒹] =
+    -k₁ qₑᵣᵣ* ⊗
+    (qₑᵣᵣ - qᵢ)
 
 where:
 
-- k<sub>1</sub> > 0
-- q<sub>I</sub> = [1, 0, 0, 0]<sup>T</sup>
+- k₁ > 0
+- qᵢ = [1, 0, 0, 0]ᵀ
 
 This virtual control is designed to make the quaternion error converge toward the identity quaternion.
 
@@ -400,16 +399,16 @@ This virtual control is designed to make the quaternion error converge toward th
 
 After substituting the virtual control into the quaternion error dynamics, the desired closed-loop behavior becomes:
 
-    q̇<sub>err</sub> =
-    -(k<sub>1</sub>/2)(q<sub>err</sub> - q<sub>I</sub>)
+    q̇ₑᵣᵣ =
+    -(k₁/2)(qₑᵣᵣ - qᵢ)
 
 This means that the quaternion error is driven toward:
 
-    q<sub>err</sub> = q<sub>I</sub>
+    qₑᵣᵣ = qᵢ
 
 or:
 
-    q<sub>err</sub> = [1, 0, 0, 0]<sup>T</sup>
+    qₑᵣᵣ = [1, 0, 0, 0]ᵀ
 
 ---
 
@@ -417,15 +416,15 @@ or:
 
 The second error variable is:
 
-    δ = ω<sub>err</sub> - ω<sub>err,d</sub>
+    δ = ωₑᵣᵣ - ωₑᵣᵣ,𝒹
 
 where:
 
-    ω<sub>err</sub> = ω - ω<sub>ref</sub>
+    ωₑᵣᵣ = ω - ωᵣₑ𝒻
 
 and:
 
-    ω<sub>err,d</sub> = desired angular velocity error
+    ωₑᵣᵣ,𝒹 = desired angular velocity error
 
 The control torque is designed to make:
 
@@ -437,30 +436,30 @@ The control torque is designed to make:
 
 Starting from:
 
-    δ = ω<sub>err</sub> - ω<sub>err,d</sub>
+    δ = ωₑᵣᵣ - ωₑᵣᵣ,𝒹
 
 differentiate both sides:
 
-    δ̇ = ω̇<sub>err</sub> - ω̇<sub>err,d</sub>
+    δ̇ = ω̇ₑᵣᵣ - ω̇ₑᵣᵣ,𝒹
 
 Since:
 
-    ω<sub>err</sub> = ω - ω<sub>ref</sub>
+    ωₑᵣᵣ = ω - ωᵣₑ𝒻
 
 we have:
 
-    ω̇<sub>err</sub> = ω̇ - ω̇<sub>ref</sub>
+    ω̇ₑᵣᵣ = ω̇ - ω̇ᵣₑ𝒻
 
 Using the quadrotor rotational dynamics:
 
-    ω̇ = J<sup>-1</sup> [τ - ω × (Jω)]
+    ω̇ = J⁻¹ [τ - ω × (Jω)]
 
 therefore:
 
     δ̇ =
-    J<sup>-1</sup> [τ - ω × (Jω)]
-    - ω̇<sub>ref</sub>
-    - ω̇<sub>err,d</sub>
+    J⁻¹ [τ - ω × (Jω)]
+    - ω̇ᵣₑ𝒻
+    - ω̇ₑᵣᵣ,𝒹
 
 This equation is used to design the final control torque.
 
@@ -470,12 +469,12 @@ This equation is used to design the final control torque.
 
 The control torque is divided into two terms:
 
-    τ = τ<sub>1</sub> + τ<sub>2</sub>
+    τ = τ₁ + τ₂
 
 where:
 
-- τ<sub>1</sub> compensates for the system dynamics and reference motion.
-- τ<sub>2</sub> provides error convergence.
+- τ₁ compensates for the system dynamics and reference motion.
+- τ₂ provides error convergence.
 
 ---
 
@@ -483,10 +482,10 @@ where:
 
 The first torque term is:
 
-    τ<sub>1</sub> =
+    τ₁ =
     ω × (Jω)
-    + Jω̇<sub>ref</sub>
-    + Jω̇<sub>err,d</sub>
+    + Jω̇ᵣₑ𝒻
+    + Jω̇ₑᵣᵣ,𝒹
 
 This term compensates for:
 
@@ -496,16 +495,16 @@ This term compensates for:
 
 The derivative of the virtual control is obtained from:
 
-    [0; ω<sub>err,d</sub>] =
-    -k<sub>1</sub> q<sub>err</sub><sup>*</sup> ⊗
-    (q<sub>err</sub> - q<sub>I</sub>)
+    [0; ωₑᵣᵣ,𝒹] =
+    -k₁ qₑᵣᵣ* ⊗
+    (qₑᵣᵣ - qᵢ)
 
 Therefore:
 
-    [0; ω̇<sub>err,d</sub>] =
+    [0; ω̇ₑᵣᵣ,𝒹] =
     d/dt {
-    -k<sub>1</sub> q<sub>err</sub><sup>*</sup> ⊗
-    (q<sub>err</sub> - q<sub>I</sub>)
+    -k₁ qₑᵣᵣ* ⊗
+    (qₑᵣᵣ - qᵢ)
     }
 
 ---
@@ -514,17 +513,17 @@ Therefore:
 
 The second torque term is:
 
-    τ<sub>2</sub> = -k<sub>2</sub> Jδ<sup>1/3</sup>
+    τ₂ = -k₂ Jδ¹ᐟ³
 
 where:
 
-    k<sub>2</sub> > 0
+    k₂ > 0
 
 This fractional-power feedback term is used to drive the backstepping error toward zero.
 
 The resulting error dynamics become:
 
-    δ̇ = -k<sub>2</sub>δ<sup>1/3</sup>
+    δ̇ = -k₂δ¹ᐟ³
 
 ---
 
@@ -532,15 +531,15 @@ The resulting error dynamics become:
 
 Combining the two torque terms:
 
-    τ = τ<sub>1</sub> + τ<sub>2</sub>
+    τ = τ₁ + τ₂
 
 Therefore:
 
     τ =
     ω × (Jω)
-    + Jω̇<sub>ref</sub>
-    + Jω̇<sub>err,d</sub>
-    - k<sub>2</sub>Jδ<sup>1/3</sup>
+    + Jω̇ᵣₑ𝒻
+    + Jω̇ₑᵣᵣ,𝒹
+    - k₂Jδ¹ᐟ³
 
 This is the main control law used in the simulation.
 
@@ -550,7 +549,7 @@ This is the main control law used in the simulation.
 
 After substituting the control torque into the error dynamics:
 
-    δ̇ = -k<sub>2</sub>δ<sup>1/3</sup>
+    δ̇ = -k₂δ¹ᐟ³
 
 The controller therefore drives:
 
@@ -568,12 +567,12 @@ The paper describes the reference trajectory as being arbitrarily defined using 
 
 The reference signal is represented as:
 
-    ω<sub>ref</sub> =
-    [ω<sub>ref,1</sub>, ω<sub>ref,2</sub>, ω<sub>ref,3</sub>]<sup>T</sup>
+    ωᵣₑ𝒻 =
+    [ωᵣₑ𝒻,₁, ωᵣₑ𝒻,₂, ωᵣₑ𝒻,₃]ᵀ
 
 Its derivative is:
 
-    ω̇<sub>ref</sub> = d(ω<sub>ref</sub>)/dt
+    ω̇ᵣₑ𝒻 = d(ωᵣₑ𝒻)/dt
 
 The exact amplitudes and frequencies should be taken from the MATLAB implementation when running the simulation.
 
@@ -586,25 +585,25 @@ The parameters used in the paper are:
 | Parameter | Value |
 |---|---|
 | J | diag(0.1, 0.1, 0.12) |
-| k<sub>1</sub> | 20 |
-| k<sub>2</sub> | 2 |
+| k₁ | 20 |
+| k₂ | 2 |
 
 Initial angular velocity:
 
-    ω(0) = [-0.1, -0.2, 0.2]<sup>T</sup>
+    ω(0) = [-0.1, -0.2, 0.2]ᵀ
 
 Initial reference angular velocity:
 
-    ω<sub>ref</sub>(0) = [-0.1, -0.2, 0.2]<sup>T</sup>
+    ωᵣₑ𝒻(0) = [-0.1, -0.2, 0.2]ᵀ
 
 Initial quaternion:
 
-    q(0) = [0.94628, -0.1541, 0.19051, -0.21098]<sup>T</sup>
+    q(0) = [0.94628, -0.1541, 0.19051, -0.21098]ᵀ
 
 Initial reference quaternion:
 
-    q<sub>ref</sub>(0) =
-    [0.94628, -0.1541, 0.19051, -0.21098]<sup>T</sup>
+    qᵣₑ𝒻(0) =
+    [0.94628, -0.1541, 0.19051, -0.21098]ᵀ
 
 ---
 
@@ -616,15 +615,15 @@ The reference trajectory is given to the controller.
 
 The controller calculates:
 
-    q<sub>err</sub>
+    qₑᵣᵣ
 
 then:
 
-    ω<sub>err</sub>
+    ωₑᵣᵣ
 
 then:
 
-    ω<sub>err,d</sub>
+    ωₑᵣᵣ,𝒹
 
 then:
 
@@ -649,14 +648,14 @@ The basic simulation loop is:
     1. Generate the reference trajectory.
     2. Read the current quaternion q.
     3. Read the current angular velocity ω.
-    4. Calculate q<sub>ref</sub>*.
-    5. Calculate q<sub>err</sub> = q<sub>ref</sub>* ⊗ q.
-    6. Calculate ω<sub>err</sub> = ω - ω<sub>ref</sub>.
-    7. Calculate the virtual control ω<sub>err,d</sub>.
-    8. Calculate δ = ω<sub>err</sub> - ω<sub>err,d</sub>.
-    9. Calculate ω̇<sub>err,d</sub>.
-    10. Calculate τ<sub>1</sub>.
-    11. Calculate τ<sub>2</sub>.
+    4. Calculate qᵣₑ𝒻*.
+    5. Calculate qₑᵣᵣ = qᵣₑ𝒻* ⊗ q.
+    6. Calculate ωₑᵣᵣ = ω - ωᵣₑ𝒻.
+    7. Calculate the virtual control ωₑᵣᵣ,𝒹.
+    8. Calculate δ = ωₑᵣᵣ - ωₑᵣᵣ,𝒹.
+    9. Calculate ω̇ₑᵣᵣ,𝒹.
+    10. Calculate τ₁.
+    11. Calculate τ₂.
     12. Calculate the total torque τ.
     13. Update angular velocity using the rotational dynamics.
     14. Update quaternion using quaternion kinematics.
@@ -672,23 +671,23 @@ The basic simulation loop is:
 
 The quaternion error should converge toward:
 
-    q<sub>err</sub> → [1, 0, 0, 0]<sup>T</sup>
+    qₑᵣᵣ → [1, 0, 0, 0]ᵀ
 
 ### Angular Velocity Error
 
 The angular velocity error should converge toward:
 
-    ω<sub>err</sub> → [0, 0, 0]<sup>T</sup>
+    ωₑᵣᵣ → [0, 0, 0]ᵀ
 
 ### Backstepping Error
 
 The error:
 
-    δ = ω<sub>err</sub> - ω<sub>err,d</sub>
+    δ = ωₑᵣᵣ - ωₑᵣᵣ,𝒹
 
 should converge toward:
 
-    δ → [0, 0, 0]<sup>T</sup>
+    δ → [0, 0, 0]ᵀ
 
 ### Control Torque
 
@@ -722,18 +721,18 @@ Important quaternion functions include:
 
 The controller calculates:
 
-    q<sub>err</sub>
-    ω<sub>err</sub>
-    ω<sub>err,d</sub>
+    qₑᵣᵣ
+    ωₑᵣᵣ
+    ωₑᵣᵣ,𝒹
     δ
-    τ<sub>1</sub>
-    τ<sub>2</sub>
+    τ₁
+    τ₂
     τ
 
 The dynamics function calculates:
 
-    q_dot
-    ω_dot
+    q̇
+    ω̇
 
 ---
 
@@ -805,20 +804,20 @@ The main program follows this sequence:
 | Variable | Meaning |
 |---|---|
 | q | Actual quaternion |
-| q<sub>ref</sub> | Reference quaternion |
-| q<sub>err</sub> | Quaternion attitude error |
-| q<sub>I</sub> | Identity quaternion |
+| qᵣₑ𝒻 | Reference quaternion |
+| qₑᵣᵣ | Quaternion attitude error |
+| qᵢ | Identity quaternion |
 | ω | Actual angular velocity |
-| ω<sub>ref</sub> | Reference angular velocity |
-| ω<sub>err</sub> | Angular velocity error |
-| ω<sub>err,d</sub> | Desired angular velocity error |
+| ωᵣₑ𝒻 | Reference angular velocity |
+| ωₑᵣᵣ | Angular velocity error |
+| ωₑᵣᵣ,𝒹 | Desired angular velocity error |
 | δ | Backstepping error |
 | J | Inertia matrix |
 | τ | Total control torque |
-| τ<sub>1</sub> | Dynamics compensation torque |
-| τ<sub>2</sub> | Error convergence torque |
-| k<sub>1</sub> | First controller gain |
-| k<sub>2</sub> | Second controller gain |
+| τ₁ | Dynamics compensation torque |
+| τ₂ | Error convergence torque |
+| k₁ | First controller gain |
+| k₂ | Second controller gain |
 
 ---
 
@@ -832,48 +831,48 @@ The complete controller can be summarized as follows.
 
 ### Step 2: Rotational Dynamics
 
-    ω̇ = J<sup>-1</sup> [τ - ω × (Jω)]
+    ω̇ = J⁻¹ [τ - ω × (Jω)]
 
 ### Step 3: Quaternion Error
 
-    q<sub>err</sub> = q<sub>ref</sub><sup>*</sup> ⊗ q
+    qₑᵣᵣ = qᵣₑ𝒻* ⊗ q
 
 ### Step 4: Angular Velocity Error
 
-    ω<sub>err</sub> = ω - ω<sub>ref</sub>
+    ωₑᵣᵣ = ω - ωᵣₑ𝒻
 
 ### Step 5: Quaternion Error Dynamics
 
-    q̇<sub>err</sub> =
-    1/2 q<sub>err</sub> ⊗ [0; ω<sub>err</sub>]
+    q̇ₑᵣᵣ =
+    1/2 qₑᵣᵣ ⊗ [0; ωₑᵣᵣ]
 
 ### Step 6: Virtual Control
 
-    [0; ω<sub>err,d</sub>] =
-    -k<sub>1</sub> q<sub>err</sub><sup>*</sup> ⊗
-    (q<sub>err</sub> - q<sub>I</sub>)
+    [0; ωₑᵣᵣ,𝒹] =
+    -k₁ qₑᵣᵣ* ⊗
+    (qₑᵣᵣ - qᵢ)
 
 ### Step 7: Backstepping Error
 
-    δ = ω<sub>err</sub> - ω<sub>err,d</sub>
+    δ = ωₑᵣᵣ - ωₑᵣᵣ,𝒹
 
 ### Step 8: Control Torque
 
     τ =
     ω × (Jω)
-    + Jω̇<sub>ref</sub>
-    + Jω̇<sub>err,d</sub>
-    - k<sub>2</sub>Jδ<sup>1/3</sup>
+    + Jω̇ᵣₑ𝒻
+    + Jω̇ₑᵣᵣ,𝒹
+    - k₂Jδ¹ᐟ³
 
 ### Step 9: Final Error Dynamics
 
-    δ̇ = -k<sub>2</sub>δ<sup>1/3</sup>
+    δ̇ = -k₂δ¹ᐟ³
 
 Therefore, the controller is designed so that:
 
-    q<sub>err</sub> → q<sub>I</sub>
+    qₑᵣᵣ → qᵢ
 
-    ω<sub>err</sub> → 0
+    ωₑᵣᵣ → 0
 
     δ → 0
 
@@ -887,17 +886,17 @@ The controller works in the following way.
 
 This gives the quaternion error:
 
-    q<sub>err</sub> = q<sub>ref</sub><sup>*</sup> ⊗ q
+    qₑᵣᵣ = qᵣₑ𝒻* ⊗ q
 
 **Second**, the angular velocity error is calculated:
 
-    ω<sub>err</sub> = ω - ω<sub>ref</sub>
+    ωₑᵣᵣ = ω - ωᵣₑ𝒻
 
 **Third**, the controller calculates a desired angular velocity error using the quaternion error.
 
 **Fourth**, the difference between the actual and desired angular velocity errors is calculated:
 
-    δ = ω<sub>err</sub> - ω<sub>err,d</sub>
+    δ = ωₑᵣᵣ - ωₑᵣᵣ,𝒹
 
 **Finally**, the controller calculates the required control torque.
 
@@ -925,7 +924,7 @@ As the simulation progresses, the errors should approach zero.
 
 The term:
 
-    δ<sup>1/3</sup>
+    δ¹ᐟ³
 
 is used in the final controller to drive the backstepping error toward zero.
 
@@ -1005,17 +1004,17 @@ The final control torque is:
 
     τ =
     ω × (Jω)
-    + Jω̇<sub>ref</sub>
-    + Jω̇<sub>err,d</sub>
-    - k<sub>2</sub>Jδ<sup>1/3</sup>
+    + Jω̇ᵣₑ𝒻
+    + Jω̇ₑᵣᵣ,𝒹
+    - k₂Jδ¹ᐟ³
 
 with:
 
-    δ = ω<sub>err</sub> - ω<sub>err,d</sub>
+    δ = ωₑᵣᵣ - ωₑᵣᵣ,𝒹
 
 and:
 
-    ω<sub>err</sub> = ω - ω<sub>ref</sub>
+    ωₑᵣᵣ = ω - ωᵣₑ𝒻
 
 The simulation evaluates quaternion error, attitude tracking, angular velocity tracking, backstepping error δ, and control torque.
 
@@ -1023,3 +1022,4 @@ The results reported in the research paper show that the tracking errors converg
 
 ---
 
+acking Application," IEEE Access, vol. 8, pp. 5515–5525, 2019.
