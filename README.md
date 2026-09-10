@@ -16,33 +16,49 @@
 
 ## 1. Project Overview
 
-This project focuses on attitude tracking control of a quadrotor UAV using quaternions.
+This project focuses on attitude tracking control of a quadrotor UAV using quaternions and a backstepping control method.
 
-The main idea is to control the orientation of the quadrotor so that its actual attitude follows a desired attitude trajectory. The controller is designed using a backstepping approach with a fractional-power feedback term.
+The main objective is to make the quadrotor follow a desired attitude trajectory in roll, pitch, and yaw.
 
-The mathematical model and controller are based on the research paper:
+The controller is based on the research paper:
 
 **"Quaternion-Based Attitude Tracking Control Design for UAVs"**
 
-The controller is tested through numerical simulation using the parameters given in the paper.
+The paper uses quaternions to represent UAV attitude and applies a backstepping methodology with a fractional exponent. The proposed controller is evaluated using numerical simulation.
 
 ---
 
 ## 2. Problem Statement
 
-A quadrotor must continuously adjust its orientation while flying.
+A quadrotor needs to continuously control its orientation while flying.
 
-The attitude of the UAV is described by its orientation and angular velocity. The control objective is to make the actual attitude and angular velocity follow their desired reference values.
+The orientation of a quadrotor can be represented using:
 
-The main challenges are:
+- Euler angles
+- Rotation matrices
+- Quaternions
 
-- Attitude is nonlinear.
-- Rotational dynamics are coupled.
-- Quaternion multiplication is non-commutative.
-- Euler angles can suffer from singularities.
-- The controller must compensate for the nonlinear rotational dynamics.
+Euler angles are easy to understand, but they can suffer from gimbal lock. Because of this, quaternions are used in this project for representing the UAV attitude.
 
-To handle these issues, this project uses quaternion-based attitude representation and a backstepping controller.
+The main control problem is:
+
+> Given a desired attitude trajectory, calculate the control torque required to make the actual quadrotor attitude follow that trajectory.
+
+The overall control process is:
+
+    Desired Attitude
+           ↓
+    Attitude Error
+           ↓
+    Backstepping Controller
+           ↓
+    Control Torque
+           ↓
+    Quadrotor Dynamics
+           ↓
+    Actual Attitude
+           ↓
+        Feedback
 
 ---
 
@@ -50,188 +66,288 @@ To handle these issues, this project uses quaternion-based attitude representati
 
 The main objectives are:
 
-1. Represent quadrotor attitude using quaternions.
-2. Develop the quaternion-based attitude error.
-3. Define angular velocity tracking error.
-4. Design a virtual control using backstepping.
-5. Design the final control torque.
-6. Simulate the closed-loop system.
-7. Check whether the attitude and angular velocity errors converge to zero.
-8. Compare the simulation behavior with the results reported in the research paper.
+1. Model the rotational dynamics of a quadrotor UAV.
+2. Represent the UAV attitude using unit quaternions.
+3. Calculate the quaternion attitude error.
+4. Calculate the angular velocity tracking error.
+5. Design a virtual control input using backstepping.
+6. Design the actual control torque.
+7. Make the attitude tracking errors converge to zero.
+8. Simulate the complete closed-loop system in MATLAB.
+9. Plot and analyze the attitude and angular velocity tracking performance.
 
 ---
 
 ## 4. Why Quaternions?
 
-Quaternions provide a convenient way to represent 3D rotations.
+A quaternion represents a 3D orientation using four components.
 
-A quaternion is written as:
+The quaternion is written as:
 
-    q = q0 + i*q1 + j*q2 + k*q3
+    q = [q<sub>0</sub>, q<sub>1</sub>, q<sub>2</sub>, q<sub>3</sub>]<sup>T</sup>
 
-In vector form:
+It can also be written as:
 
-    q = [q0, q1, q2, q3]^T
+    q = q<sub>0</sub> + i q<sub>1</sub> + j q<sub>2</sub> + k q<sub>3</sub>
+
+where:
+
+- q<sub>0</sub> is the scalar component.
+- q<sub>1</sub>, q<sub>2</sub>, q<sub>3</sub> are the vector components.
 
 For a unit quaternion:
 
-    ||q|| = sqrt(q0^2 + q1^2 + q2^2 + q3^2) = 1
+    ||q|| = √(q<sub>0</sub><sup>2</sup> + q<sub>1</sub><sup>2</sup> + q<sub>2</sub><sup>2</sup> + q<sub>3</sub><sup>2</sup>) = 1
 
-Here:
+Quaternions are useful because they:
 
-- q0 is the scalar component.
-- q1, q2, q3 are the vector components.
-
-Quaternions are useful for UAV attitude control because they avoid the singularity problems associated with Euler angles.
-
----
-
-## 5. Quaternion Operations
-
-### 5.1 Quaternion Conjugate
-
-For
-
-    q = [q0, q1, q2, q3]^T
-
-the conjugate is:
-
-    q* = [q0, -q1, -q2, -q3]^T
+- Avoid gimbal lock.
+- Represent 3D orientation using four parameters.
+- Provide a smooth attitude representation.
+- Are suitable for nonlinear UAV attitude control.
 
 ---
 
-### 5.2 Quaternion Norm
+## 5. Why Backstepping?
 
-The quaternion norm is:
+The quadrotor does not directly change its attitude using the control input.
 
-    ||q|| = sqrt(q0^2 + q1^2 + q2^2 + q3^2)
+The relationship is:
 
-For attitude representation, the quaternion is normalized so that:
+    Torque
+       ↓
+    Angular Velocity
+       ↓
+    Attitude
+
+The motors generate torque.
+
+The torque changes the angular velocity, and the angular velocity changes the attitude.
+
+Because of this structure, the controller is designed step-by-step. This is the basic idea behind backstepping control.
+
+The controller first determines a desired angular velocity that can reduce the attitude error. It then calculates the required torque to make the actual angular velocity follow this desired value.
+
+---
+
+## 6. Overall System Architecture
+
+The complete project follows a closed-loop architecture:
+
+    ┌──────────────────────────────┐
+    │      Reference Generator     │
+    │                              │
+    │ Desired Angular Velocity     │
+    │ / Attitude                   │
+    └──────────────┬───────────────┘
+                   │
+                   ▼
+    ┌──────────────────────────────┐
+    │   Quaternion Error Calculator│
+    │                              │
+    │ q<sub>err</sub> = q<sub>ref</sub>* ⊗ q             │
+    └──────────────┬───────────────┘
+                   │
+                   ▼
+    ┌──────────────────────────────┐
+    │     Backstepping Controller  │
+    │                              │
+    │ Virtual Control              │
+    │ Error δ                      │
+    │ Torque τ                     │
+    └──────────────┬───────────────┘
+                   │
+                   ▼
+    ┌──────────────────────────────┐
+    │      Quadrotor Dynamics      │
+    │                              │
+    │ Quaternion Kinematics        │
+    │ Rotational Dynamics          │
+    └──────────────┬───────────────┘
+                   │
+                   ▼
+    ┌──────────────────────────────┐
+    │       Actual UAV State       │
+    │                              │
+    │ q, ω                         │
+    └──────────────┬───────────────┘
+                   │
+                   │ Feedback
+                   └─────────────────────┐
+                                         │
+                                         ▼
+                                  Error Calculation
+
+---
+
+## 7. Mathematical Model
+
+### 7.1 Quaternion Representation
+
+The attitude is represented by:
+
+    q = [q<sub>0</sub>, q<sub>1</sub>, q<sub>2</sub>, q<sub>3</sub>]<sup>T</sup>
+
+where:
+
+- q<sub>0</sub> is the scalar component.
+- q<sub>1</sub>, q<sub>2</sub>, q<sub>3</sub> are the vector components.
+
+For a valid unit quaternion:
 
     ||q|| = 1
 
 ---
 
-### 5.3 Quaternion Inverse
+### 7.2 Quaternion Conjugate
+
+The quaternion conjugate is:
+
+    q* = [q<sub>0</sub>, -q<sub>1</sub>, -q<sub>2</sub>, -q<sub>3</sub>]<sup>T</sup>
 
 The general quaternion inverse is:
 
-    q^-1 = q* / ||q||^2
+    q<sup>-1</sup> = q* / ||q||<sup>2</sup>
 
 For a unit quaternion:
 
-    q^-1 = q*
+    q<sup>-1</sup> = q*
+
+The conjugate is used when calculating the attitude error.
 
 ---
 
-### 5.4 Quaternion Normalization
+### 7.3 Quaternion Normalization
 
 A quaternion can be normalized using:
 
-    q_normalized = q / ||q||
+    q<sub>normalized</sub> = q / ||q||
 
-This is useful in numerical simulation to reduce numerical drift.
+Normalization is useful in numerical simulation to keep the quaternion close to unit length.
 
 ---
 
-### 5.5 Quaternion Multiplication
+### 7.4 Quaternion Multiplication
 
 Quaternion multiplication is written as:
 
-    q = q1 ⊗ q2
+    q<sub>1</sub> ⊗ q<sub>2</sub>
 
 For:
 
-    q1 = [a, b, c, d]^T
-    q2 = [e, f, g, h]^T
+    q<sub>1</sub> = [a, b, c, d]<sup>T</sup>
+    q<sub>2</sub> = [e, f, g, h]<sup>T</sup>
 
 the product is:
 
-    q1 ⊗ q2 =
+    q<sub>1</sub> ⊗ q<sub>2</sub> =
+
     [
-        ae - bf - cg - dh
-        af + be + ch - dg
-        ag - bh + ce + df
-        ah + bg - cf + de
+    ae - bf - cg - dh
+    af + be + ch - dg
+    ag - bh + ce + df
+    ah + bg - cf + de
     ]
 
 Quaternion multiplication is non-commutative:
 
-    q1 ⊗ q2 != q2 ⊗ q1
+    q<sub>1</sub> ⊗ q<sub>2</sub> ≠ q<sub>2</sub> ⊗ q<sub>1</sub>
 
 Therefore, the order of quaternion multiplication must be maintained correctly.
 
 ---
 
-## 6. Quadrotor Attitude Dynamics
+## 8. Quadrotor Attitude Dynamics
 
-The quadrotor rotational dynamics are given by:
+The project uses two main equations to describe the rotational motion of the UAV.
 
-    ω_dot = J^-1 [ τ - ω × (Jω) ]
+### 8.1 Quaternion Kinematics
+
+The quaternion differential equation is:
+
+    q̇ = 1/2 q ⊗ [0; ω]
 
 where:
 
+- q = attitude quaternion
 - ω = angular velocity
+- q̇ = rate of change of attitude
+
+This equation describes how the UAV orientation changes according to its angular velocity.
+
+---
+
+### 8.2 Rotational Dynamics
+
+The rotational dynamics are:
+
+    ω̇ = J<sup>-1</sup> [τ - ω × (Jω)]
+
+where:
+
 - J = inertia matrix
+- ω = angular velocity
 - τ = control torque
-- × = cross product
+- ω × (Jω) = gyroscopic term
+- ω̇ = angular acceleration
 
-The quaternion kinematics are:
-
-    q_dot = 1/2 * q ⊗ [0; ω]
-
-where:
-
-    [0; ω] = [0, ω1, ω2, ω3]^T
+This equation determines how the control torque changes the angular velocity.
 
 ---
 
-## 7. Attitude Error
+## 9. Error Definitions
 
-The quaternion attitude error is defined as:
+### 9.1 Quaternion Error
 
-    q_err = q_ref* ⊗ q
+The attitude error is defined as:
+
+    q<sub>err</sub> = q<sub>ref</sub><sup>*</sup> ⊗ q
 
 where:
 
-- q_ref = desired/reference quaternion
+- q<sub>ref</sub> = desired quaternion
 - q = actual quaternion
-- q_ref* = conjugate of the reference quaternion
+- q<sub>ref</sub><sup>*</sup> = conjugate of the desired quaternion
+- ⊗ = quaternion multiplication
 
-When the actual attitude matches the reference attitude:
+When the actual and desired attitudes are equal:
 
-    q_err = [1, 0, 0, 0]^T
+    q = q<sub>ref</sub>
 
-The identity quaternion is defined as:
+then:
 
-    q_I = [1, 0, 0, 0]^T
+    q<sub>err</sub> = [1, 0, 0, 0]<sup>T</sup>
 
-Using q_I instead of I avoids confusion with the identity matrix used elsewhere.
+This represents zero attitude error.
+
+The identity quaternion is:
+
+    q<sub>I</sub> = [1, 0, 0, 0]<sup>T</sup>
 
 ---
 
-## 8. Angular Velocity Error
+### 9.2 Angular Velocity Error
 
 The angular velocity tracking error is:
 
-    ω_err = ω - ω_ref
+    ω<sub>err</sub> = ω - ω<sub>ref</sub>
 
 where:
 
 - ω = actual angular velocity
-- ω_ref = reference angular velocity
+- ω<sub>ref</sub> = reference angular velocity
 
-The objective of the controller is:
+The control objective is:
 
-    ω_err -> 0
+    ω<sub>err</sub> → 0
 
 ---
 
-## 9. Quaternion Error Dynamics
+## 10. Quaternion Error Dynamics
 
-The error quaternion dynamics are:
+The quaternion error dynamics are:
 
-    q_err_dot = 1/2 * q_err ⊗ [0; ω_err]
+    q̇<sub>err</sub> = 1/2 q<sub>err</sub> ⊗ [0; ω<sub>err</sub>]
 
 This equation connects the attitude error with the angular velocity tracking error.
 
@@ -239,139 +355,138 @@ The controller first creates a desired angular velocity error, which is then use
 
 ---
 
-## 10. Backstepping Controller
+## 11. Backstepping Controller
 
-The controller is designed in two stages.
+The backstepping controller is designed in two main stages.
 
-### Stage 1
+### Stage 1: Virtual Control
 
-Design a virtual control for the angular velocity error.
+A virtual control is designed using the quaternion error.
 
-### Stage 2
+### Stage 2: Control Torque
 
-Use the difference between the actual angular velocity error and the virtual control to generate the final control torque.
+The difference between the actual angular velocity error and the virtual control is used to design the final control torque.
 
-The two main errors are:
+The second error variable is:
 
-    q_err
-
-and
-
-    δ = ω_err - ω_err,d
+    δ = ω<sub>err</sub> - ω<sub>err,d</sub>
 
 where:
 
-- ω_err,d = desired angular velocity error
+- ω<sub>err</sub> = angular velocity error
+- ω<sub>err,d</sub> = desired angular velocity error
 - δ = backstepping error
 
 ---
 
-## 11. Stage 1: Virtual Control
+## 12. Stage 1: Virtual Control
 
 The virtual control is defined as:
 
-    [0; ω_err,d] =
-    -k1 * q_err* ⊗ (q_err - q_I)
+    [0; ω<sub>err,d</sub>] =
+    -k<sub>1</sub> q<sub>err</sub><sup>*</sup> ⊗
+    (q<sub>err</sub> - q<sub>I</sub>)
 
 where:
 
-- k1 > 0
-- q_I = [1, 0, 0, 0]^T
+- k<sub>1</sub> > 0
+- q<sub>I</sub> = [1, 0, 0, 0]<sup>T</sup>
 
 This virtual control is designed to make the quaternion error converge toward the identity quaternion.
 
 ---
 
-## 12. Stable Quaternion Error Dynamics
+## 13. Stable Quaternion Error Dynamics
 
 After substituting the virtual control into the quaternion error dynamics, the desired closed-loop behavior becomes:
 
-    q_err_dot = -(k1/2) * (q_err - q_I)
+    q̇<sub>err</sub> =
+    -(k<sub>1</sub>/2)(q<sub>err</sub> - q<sub>I</sub>)
 
 This means that the quaternion error is driven toward:
 
-    q_err = q_I
+    q<sub>err</sub> = q<sub>I</sub>
 
 or:
 
-    q_err = [1, 0, 0, 0]^T
+    q<sub>err</sub> = [1, 0, 0, 0]<sup>T</sup>
 
 ---
 
-## 13. Stage 2: Backstepping Error
+## 14. Stage 2: Backstepping Error
 
-The second error variable is defined as:
+The second error variable is:
 
-    δ = ω_err - ω_err,d
+    δ = ω<sub>err</sub> - ω<sub>err,d</sub>
 
 where:
 
-    ω_err = ω - ω_ref
+    ω<sub>err</sub> = ω - ω<sub>ref</sub>
 
 and:
 
-    ω_err,d = desired angular velocity error
+    ω<sub>err,d</sub> = desired angular velocity error
 
 The control torque is designed to make:
 
-    δ -> 0
+    δ → 0
 
 ---
 
-## 14. Error Dynamics
+## 15. Error Dynamics
 
 Starting from:
 
-    δ = ω_err - ω_err,d
+    δ = ω<sub>err</sub> - ω<sub>err,d</sub>
 
 differentiate both sides:
 
-    δ_dot = ω_err_dot - ω_err,d_dot
+    δ̇ = ω̇<sub>err</sub> - ω̇<sub>err,d</sub>
 
 Since:
 
-    ω_err = ω - ω_ref
+    ω<sub>err</sub> = ω - ω<sub>ref</sub>
 
 we have:
 
-    ω_err_dot = ω_dot - ω_ref_dot
+    ω̇<sub>err</sub> = ω̇ - ω̇<sub>ref</sub>
 
 Using the quadrotor rotational dynamics:
 
-    ω_dot = J^-1 [ τ - ω × (Jω) ]
+    ω̇ = J<sup>-1</sup> [τ - ω × (Jω)]
 
 therefore:
 
-    δ_dot =
-    J^-1 [ τ - ω × (Jω) ]
-    - ω_ref_dot
-    - ω_err,d_dot
+    δ̇ =
+    J<sup>-1</sup> [τ - ω × (Jω)]
+    - ω̇<sub>ref</sub>
+    - ω̇<sub>err,d</sub>
 
 This equation is used to design the final control torque.
 
 ---
 
-## 15. Control Torque Design
+## 16. Control Torque Design
 
 The control torque is divided into two terms:
 
-    τ = τ1 + τ2
+    τ = τ<sub>1</sub> + τ<sub>2</sub>
 
 where:
 
-- τ1 compensates for the system dynamics and reference motion.
-- τ2 provides error convergence.
+- τ<sub>1</sub> compensates for the system dynamics and reference motion.
+- τ<sub>2</sub> provides error convergence.
 
 ---
 
-## 16. Torque Term 1: Dynamics Compensation
+## 17. Torque Term 1: Dynamics Compensation
 
 The first torque term is:
 
-    τ1 =
+    τ<sub>1</sub> =
     ω × (Jω)
-    + J * ω_ref_dot
-    + J * ω_err,d_dot
+    + Jω̇<sub>ref</sub>
+    + Jω̇<sub>err,d</sub>
 
 This term compensates for:
 
@@ -381,116 +496,119 @@ This term compensates for:
 
 The derivative of the virtual control is obtained from:
 
-    [0; ω_err,d] =
-    -k1 * q_err* ⊗ (q_err - q_I)
+    [0; ω<sub>err,d</sub>] =
+    -k<sub>1</sub> q<sub>err</sub><sup>*</sup> ⊗
+    (q<sub>err</sub> - q<sub>I</sub>)
 
 Therefore:
 
-    [0; ω_err,d_dot]
-    =
-    d/dt { -k1 * q_err* ⊗ (q_err - q_I) }
+    [0; ω̇<sub>err,d</sub>] =
+    d/dt {
+    -k<sub>1</sub> q<sub>err</sub><sup>*</sup> ⊗
+    (q<sub>err</sub> - q<sub>I</sub>)
+    }
 
 ---
 
-## 17. Torque Term 2: Error Convergence
+## 18. Torque Term 2: Error Convergence
 
 The second torque term is:
 
-    τ2 = -k2 * J * δ^(1/3)
+    τ<sub>2</sub> = -k<sub>2</sub> Jδ<sup>1/3</sup>
 
 where:
 
-    k2 > 0
+    k<sub>2</sub> > 0
 
 This fractional-power feedback term is used to drive the backstepping error toward zero.
 
 The resulting error dynamics become:
 
-    δ_dot = -k2 * δ^(1/3)
+    δ̇ = -k<sub>2</sub>δ<sup>1/3</sup>
 
 ---
 
-## 18. Final Control Torque
+## 19. Final Control Torque
 
 Combining the two torque terms:
 
-    τ = τ1 + τ2
+    τ = τ<sub>1</sub> + τ<sub>2</sub>
 
 Therefore:
 
     τ =
     ω × (Jω)
-    + J * ω_ref_dot
-    + J * ω_err,d_dot
-    - k2 * J * δ^(1/3)
+    + Jω̇<sub>ref</sub>
+    + Jω̇<sub>err,d</sub>
+    - k<sub>2</sub>Jδ<sup>1/3</sup>
 
 This is the main control law used in the simulation.
 
 ---
 
-## 19. Final Error Dynamics
+## 20. Final Error Dynamics
 
 After substituting the control torque into the error dynamics:
 
-    δ_dot = -k2 * δ^(1/3)
+    δ̇ = -k<sub>2</sub>δ<sup>1/3</sup>
 
 The controller therefore drives:
 
-    δ -> 0
+    δ → 0
 
 As the backstepping error converges, the angular velocity tracking error also converges toward the desired behavior.
 
 ---
 
-## 20. Reference Trajectory
+## 21. Reference Trajectory
 
-The reference angular velocity is generated using three sinusoidal signals.
+The reference angular velocity consists of three sinusoidal signals.
 
 The paper describes the reference trajectory as being arbitrarily defined using sine waves.
 
-The exact amplitudes and frequencies are not specified in the main equations reproduced here, so they should be taken directly from the MATLAB implementation when running the simulation.
-
 The reference signal is represented as:
 
-    ω_ref = [ω_ref1, ω_ref2, ω_ref3]^T
+    ω<sub>ref</sub> =
+    [ω<sub>ref,1</sub>, ω<sub>ref,2</sub>, ω<sub>ref,3</sub>]<sup>T</sup>
 
-The derivative is:
+Its derivative is:
 
-    ω_ref_dot = d(ω_ref)/dt
+    ω̇<sub>ref</sub> = d(ω<sub>ref</sub>)/dt
+
+The exact amplitudes and frequencies should be taken from the MATLAB implementation when running the simulation.
 
 ---
 
-## 21. Simulation Parameters
+## 22. Simulation Parameters
 
 The parameters used in the paper are:
 
 | Parameter | Value |
 |---|---|
 | J | diag(0.1, 0.1, 0.12) |
-| k1 | 20 |
-| k2 | 2 |
+| k<sub>1</sub> | 20 |
+| k<sub>2</sub> | 2 |
 
 Initial angular velocity:
 
-    ω(0) = [-0.1, -0.2, 0.2]^T
+    ω(0) = [-0.1, -0.2, 0.2]<sup>T</sup>
 
 Initial reference angular velocity:
 
-    ω_ref(0) = [-0.1, -0.2, 0.2]^T
+    ω<sub>ref</sub>(0) = [-0.1, -0.2, 0.2]<sup>T</sup>
 
 Initial quaternion:
 
-    q(0) =
-    [0.94628, -0.1541, 0.19051, -0.21098]^T
+    q(0) = [0.94628, -0.1541, 0.19051, -0.21098]<sup>T</sup>
 
 Initial reference quaternion:
 
-    q_ref(0) =
-    [0.94628, -0.1541, 0.19051, -0.21098]^T
+    q<sub>ref</sub>(0) =
+    [0.94628, -0.1541, 0.19051, -0.21098]<sup>T</sup>
 
 ---
 
-## 22. Closed-Loop Simulation
+## 23. Closed-Loop Simulation
 
 The complete system is simulated as a closed-loop system.
 
@@ -498,15 +616,15 @@ The reference trajectory is given to the controller.
 
 The controller calculates:
 
-    q_err
+    q<sub>err</sub>
 
 then:
 
-    ω_err
+    ω<sub>err</sub>
 
 then:
 
-    ω_err,d
+    ω<sub>err,d</sub>
 
 then:
 
@@ -524,55 +642,53 @@ This process continues at every simulation step.
 
 ---
 
-## 23. Simulation Procedure
+## 24. Simulation Procedure
 
 The basic simulation loop is:
 
     1. Generate the reference trajectory.
     2. Read the current quaternion q.
     3. Read the current angular velocity ω.
-    4. Calculate q_ref*.
-    5. Calculate q_err = q_ref* ⊗ q.
-    6. Calculate ω_err = ω - ω_ref.
-    7. Calculate the virtual control ω_err,d.
-    8. Calculate δ = ω_err - ω_err,d.
-    9. Calculate ω_err,d_dot.
-    10. Calculate τ1.
-    11. Calculate τ2.
+    4. Calculate q<sub>ref</sub>*.
+    5. Calculate q<sub>err</sub> = q<sub>ref</sub>* ⊗ q.
+    6. Calculate ω<sub>err</sub> = ω - ω<sub>ref</sub>.
+    7. Calculate the virtual control ω<sub>err,d</sub>.
+    8. Calculate δ = ω<sub>err</sub> - ω<sub>err,d</sub>.
+    9. Calculate ω̇<sub>err,d</sub>.
+    10. Calculate τ<sub>1</sub>.
+    11. Calculate τ<sub>2</sub>.
     12. Calculate the total torque τ.
     13. Update angular velocity using the rotational dynamics.
-    14. Update quaternion using the quaternion kinematics.
+    14. Update quaternion using quaternion kinematics.
     15. Normalize the quaternion.
     16. Store the results.
-    17. Plot the tracking errors and control torque.
+    17. Plot the results.
 
 ---
 
-## 24. Expected Simulation Results
-
-The controller should produce the following behavior:
+## 25. Expected Simulation Results
 
 ### Quaternion Error
 
 The quaternion error should converge toward:
 
-    [1, 0, 0, 0]^T
+    q<sub>err</sub> → [1, 0, 0, 0]<sup>T</sup>
 
 ### Angular Velocity Error
 
 The angular velocity error should converge toward:
 
-    [0, 0, 0]^T
+    ω<sub>err</sub> → [0, 0, 0]<sup>T</sup>
 
 ### Backstepping Error
 
 The error:
 
-    δ = ω_err - ω_err,d
+    δ = ω<sub>err</sub> - ω<sub>err,d</sub>
 
 should converge toward:
 
-    [0, 0, 0]^T
+    δ → [0, 0, 0]<sup>T</sup>
 
 ### Control Torque
 
@@ -580,7 +696,7 @@ The control torque should decrease as the system approaches the desired trajecto
 
 ---
 
-## 25. Results Reported in the Research Paper
+## 26. Results Reported in the Research Paper
 
 The research paper reports that:
 
@@ -593,43 +709,28 @@ These results indicate that the proposed controller is able to track the desired
 
 ---
 
-## 26. Software Requirements
-
-The project can be implemented using MATLAB.
-
-Recommended tools:
-
-- MATLAB
-- MATLAB scripts/functions
-- Numerical ODE solver
-- Plotting tools
-
-No physical quadrotor hardware is required for the numerical simulation.
-
----
-
 ## 27. MATLAB Implementation
 
-A MATLAB implementation can be organized around the following functions:
+The MATLAB implementation can be organized using functions for quaternion operations, controller calculations, and system dynamics.
+
+Important quaternion functions include:
 
     quatMultiply
     quatConjugate
     quatNormalize
     quatInverse
 
-These functions handle the basic quaternion operations.
+The controller calculates:
 
-The controller function can calculate:
-
-    q_err
-    ω_err
-    ω_err,d
+    q<sub>err</sub>
+    ω<sub>err</sub>
+    ω<sub>err,d</sub>
     δ
-    τ1
-    τ2
+    τ<sub>1</sub>
+    τ<sub>2</sub>
     τ
 
-The dynamics function can calculate:
+The dynamics function calculates:
 
     q_dot
     ω_dot
@@ -641,33 +742,23 @@ The dynamics function can calculate:
 A simple MATLAB project structure is:
 
     Drones_S5_AB11/
-    |
-    |-- README.md
-    |
-    |-- main.m
-    |
-    |-- controller.m
-    |
-    |-- dynamics.m
-    |
-    |-- referenceTrajectory.m
-    |
-    |-- quatMultiply.m
-    |
-    |-- quatConjugate.m
-    |
-    |-- quatNormalize.m
-    |
-    |-- quatInverse.m
-    |
-    |-- plots.m
-    |
-    |-- results/
-    |
-    |   |-- quaternion_error.png
-    |   |-- angular_velocity_error.png
-    |   |-- delta.png
-    |   |-- control_torque.png
+    │
+    ├── README.md
+    ├── main.m
+    ├── controller.m
+    ├── dynamics.m
+    ├── referenceTrajectory.m
+    ├── quatMultiply.m
+    ├── quatConjugate.m
+    ├── quatNormalize.m
+    ├── quatInverse.m
+    ├── plots.m
+    │
+    └── results/
+        ├── quaternion_error.png
+        ├── angular_velocity_error.png
+        ├── delta.png
+        └── control_torque.png
 
 The exact file structure can be changed depending on the MATLAB implementation.
 
@@ -675,50 +766,36 @@ The exact file structure can be changed depending on the MATLAB implementation.
 
 ## 29. Main Program Flow
 
-The main program follows this general sequence:
+The main program follows this sequence:
 
     Start
-      |
-      v
-    Initialize parameters
-      |
-      v
+      ↓
+    Initialize Parameters
+      ↓
     Initialize q and ω
-      |
-      v
-    Generate reference trajectory
-      |
-      v
-    Calculate quaternion error
-      |
-      v
-    Calculate angular velocity error
-      |
-      v
-    Calculate virtual control
-      |
-      v
+      ↓
+    Generate Reference Trajectory
+      ↓
+    Calculate Quaternion Error
+      ↓
+    Calculate Angular Velocity Error
+      ↓
+    Calculate Virtual Control
+      ↓
     Calculate δ
-      |
-      v
-    Calculate control torque
-      |
-      v
-    Update quadrotor dynamics
-      |
-      v
-    Update quaternion
-      |
-      v
-    Normalize quaternion
-      |
-      v
-    Store results
-      |
-      v
-    Plot results
-      |
-      v
+      ↓
+    Calculate Control Torque
+      ↓
+    Update Quadrotor Dynamics
+      ↓
+    Update Quaternion
+      ↓
+    Normalize Quaternion
+      ↓
+    Store Results
+      ↓
+    Plot Results
+      ↓
     End
 
 ---
@@ -728,20 +805,20 @@ The main program follows this general sequence:
 | Variable | Meaning |
 |---|---|
 | q | Actual quaternion |
-| q_ref | Reference quaternion |
-| q_err | Quaternion attitude error |
-| q_I | Identity quaternion |
+| q<sub>ref</sub> | Reference quaternion |
+| q<sub>err</sub> | Quaternion attitude error |
+| q<sub>I</sub> | Identity quaternion |
 | ω | Actual angular velocity |
-| ω_ref | Reference angular velocity |
-| ω_err | Angular velocity error |
-| ω_err,d | Desired angular velocity error |
+| ω<sub>ref</sub> | Reference angular velocity |
+| ω<sub>err</sub> | Angular velocity error |
+| ω<sub>err,d</sub> | Desired angular velocity error |
 | δ | Backstepping error |
 | J | Inertia matrix |
 | τ | Total control torque |
-| τ1 | Dynamics compensation torque |
-| τ2 | Error convergence torque |
-| k1 | First controller gain |
-| k2 | Second controller gain |
+| τ<sub>1</sub> | Dynamics compensation torque |
+| τ<sub>2</sub> | Error convergence torque |
+| k<sub>1</sub> | First controller gain |
+| k<sub>2</sub> | Second controller gain |
 
 ---
 
@@ -751,74 +828,76 @@ The complete controller can be summarized as follows.
 
 ### Step 1: Quaternion Kinematics
 
-    q_dot = 1/2 * q ⊗ [0; ω]
+    q̇ = 1/2 q ⊗ [0; ω]
 
 ### Step 2: Rotational Dynamics
 
-    ω_dot = J^-1 [ τ - ω × (Jω) ]
+    ω̇ = J<sup>-1</sup> [τ - ω × (Jω)]
 
 ### Step 3: Quaternion Error
 
-    q_err = q_ref* ⊗ q
+    q<sub>err</sub> = q<sub>ref</sub><sup>*</sup> ⊗ q
 
 ### Step 4: Angular Velocity Error
 
-    ω_err = ω - ω_ref
+    ω<sub>err</sub> = ω - ω<sub>ref</sub>
 
 ### Step 5: Quaternion Error Dynamics
 
-    q_err_dot = 1/2 * q_err ⊗ [0; ω_err]
+    q̇<sub>err</sub> =
+    1/2 q<sub>err</sub> ⊗ [0; ω<sub>err</sub>]
 
 ### Step 6: Virtual Control
 
-    [0; ω_err,d] =
-    -k1 * q_err* ⊗ (q_err - q_I)
+    [0; ω<sub>err,d</sub>] =
+    -k<sub>1</sub> q<sub>err</sub><sup>*</sup> ⊗
+    (q<sub>err</sub> - q<sub>I</sub>)
 
 ### Step 7: Backstepping Error
 
-    δ = ω_err - ω_err,d
+    δ = ω<sub>err</sub> - ω<sub>err,d</sub>
 
 ### Step 8: Control Torque
 
     τ =
     ω × (Jω)
-    + J * ω_ref_dot
-    + J * ω_err,d_dot
-    - k2 * J * δ^(1/3)
+    + Jω̇<sub>ref</sub>
+    + Jω̇<sub>err,d</sub>
+    - k<sub>2</sub>Jδ<sup>1/3</sup>
 
 ### Step 9: Final Error Dynamics
 
-    δ_dot = -k2 * δ^(1/3)
+    δ̇ = -k<sub>2</sub>δ<sup>1/3</sup>
 
 Therefore, the controller is designed so that:
 
-    q_err -> q_I
+    q<sub>err</sub> → q<sub>I</sub>
 
-    ω_err -> 0
+    ω<sub>err</sub> → 0
 
-    δ -> 0
+    δ → 0
 
 ---
 
 ## 32. Project Workflow in Simple Terms
 
-The controller works in the following way:
+The controller works in the following way.
 
 **First**, the actual quaternion is compared with the reference quaternion.
 
 This gives the quaternion error:
 
-    q_err = q_ref* ⊗ q
+    q<sub>err</sub> = q<sub>ref</sub><sup>*</sup> ⊗ q
 
 **Second**, the angular velocity error is calculated:
 
-    ω_err = ω - ω_ref
+    ω<sub>err</sub> = ω - ω<sub>ref</sub>
 
 **Third**, the controller calculates a desired angular velocity error using the quaternion error.
 
 **Fourth**, the difference between the actual and desired angular velocity errors is calculated:
 
-    δ = ω_err - ω_err,d
+    δ = ω<sub>err</sub> - ω<sub>err,d</sub>
 
 **Finally**, the controller calculates the required control torque.
 
@@ -846,7 +925,7 @@ As the simulation progresses, the errors should approach zero.
 
 The term:
 
-    δ^(1/3)
+    δ<sup>1/3</sup>
 
 is used in the final controller to drive the backstepping error toward zero.
 
@@ -854,41 +933,41 @@ is used in the final controller to drive the backstepping error toward zero.
 
 ## 34. Limitations
 
-The current work is based on numerical simulation.
+The current work is primarily based on numerical simulation.
 
-Some practical effects are not covered in the basic simulation, such as:
+The basic simulation does not necessarily include:
 
+- Real quadrotor hardware.
+- Real motor drivers.
+- Real IMU sensors.
+- Real-time flight testing.
+- Wind and external disturbance testing.
+- Hardware-in-the-loop testing.
+- Actuator limitations.
 - Sensor noise.
-- Actuator saturation.
-- External disturbances.
-- Aerodynamic effects.
-- Rotor dynamics.
-- Model uncertainty.
-- Communication delays.
-- Hardware limitations.
 
-The research paper also states that experimental validation is a topic for future work.
+The research paper presents simulation results and identifies experimental validation as future work.
 
 ---
 
 ## 35. Future Scope
 
-Possible extensions include:
+Possible future improvements include:
 
-- Testing the controller on a real quadrotor.
-- Adding external disturbance rejection.
-- Considering actuator saturation.
-- Adding sensor noise to the simulation.
-- Testing robustness against model uncertainty.
-- Implementing the controller on embedded hardware.
-- Comparing the controller with PID, LQR, sliding-mode, and other attitude controllers.
-- Testing the controller under different reference trajectories.
+1. Implement the controller on a real quadrotor.
+2. Integrate IMU sensor measurements.
+3. Test the controller under wind disturbances.
+4. Add actuator and motor dynamics.
+5. Compare the backstepping controller with PID, LQR, and other nonlinear controllers.
+6. Perform hardware-in-the-loop testing.
+7. Extend attitude control to full position and trajectory control.
+8. Analyze robustness under parameter uncertainty.
 
 ---
 
 ## 36. Research Paper
 
-The controller is based on:
+The project is based on:
 
 **Quaternion-Based Attitude Tracking Control Design for UAVs**
 
@@ -902,7 +981,7 @@ Conference:
 
 Location:
 
-**NTUST, Taipei**
+**National Taiwan University of Science and Technology, Taipei**
 
 Date:
 
@@ -916,71 +995,31 @@ DOI:
 
 ## 37. Conclusion
 
-This project implements a quaternion-based attitude tracking controller for a quadrotor UAV.
+This project develops and simulates a quaternion-based backstepping attitude tracking controller for a quadrotor UAV.
 
-The approach uses quaternion attitude representation, angular velocity tracking error, and a two-stage backstepping controller.
+The quadrotor is modeled using quaternion kinematics and rotational dynamics. The actual and desired attitudes are compared using quaternion error.
 
-The first stage generates a virtual angular velocity error, while the second stage generates the control torque required to reduce the remaining tracking error.
+The controller first generates a virtual desired angular velocity error and then calculates the control torque required to make the actual angular velocity follow the desired behavior.
 
-The final controller is:
+The final control torque is:
 
     τ =
     ω × (Jω)
-    + J * ω_ref_dot
-    + J * ω_err,d_dot
-    - k2 * J * δ^(1/3)
+    + Jω̇<sub>ref</sub>
+    + Jω̇<sub>err,d</sub>
+    - k<sub>2</sub>Jδ<sup>1/3</sup>
 
 with:
 
-    δ = ω_err - ω_err,d
+    δ = ω<sub>err</sub> - ω<sub>err,d</sub>
 
 and:
 
-    ω_err = ω - ω_ref
+    ω<sub>err</sub> = ω - ω<sub>ref</sub>
 
-The simulation results reported in the research paper show that the quaternion error, angular velocity error, and backstepping error converge toward their desired values.
+The simulation evaluates quaternion error, attitude tracking, angular velocity tracking, backstepping error δ, and control torque.
 
----
-
-## 38. Key Takeaways
-
-- Quaternions are used to represent quadrotor attitude.
-- Quaternion multiplication must be performed in the correct order.
-- The attitude error is:
-
-      q_err = q_ref* ⊗ q
-
-- The angular velocity error is:
-
-      ω_err = ω - ω_ref
-
-- A virtual control is generated using the quaternion error.
-- The second backstepping stage generates the control torque.
-- The final torque contains both dynamics compensation and error feedback.
-- The fractional-power term δ^(1/3) is used for error convergence.
-- Numerical simulation is used to evaluate the controller.
-- The reported results show convergence of the tracking errors.
+The results reported in the research paper show that the tracking errors converge toward their desired values.
 
 ---
 
-## References
-
-1. Qain-Rong Lin and Jen-te Yu, "Quaternion-Based Attitude Tracking Control Design for UAVs," 2024 International Automatic Control Conference (CACS 2024), NTUST, Taipei, 2024. DOI: 10.1109/CACS63404.2024.10773309.
-
-2. Fresk and Nikolakopoulos, "Full Quaternion Based Attitude Control for a Quadrotor," European Control Conference (ECC), 2013.
-
-3. Esmail et al., "Attitude and Altitude Tracking Controller for Quadcopter Dynamical Systems," IEEE Access, 2022.
-
-4. Chovancová et al., "Comparison of Various Quaternion-Based Control Methods for a Quadrotor," Robotics and Autonomous Systems, 2016.
-
-5. Kimathi and Lantos, "PD Control and Unwinding Problem in Quaternion-Based Attitude Control," IEEE INES, 2023.
-
-6. Reyes-Valeria et al., "LQR Control Using Unit Quaternions," 2013.
-
-7. Jen-te Yu, "A Unified SO(3) Approach to the Attitude Control Design for Quadrotors," IEEE Access, 2021.
-
-8. Meslouli et al., "Experimental Validation of Quaternion Based Integral Backstepping Design for Attitude Tracking," CEIT, 2018.
-
-9. Lindqvist et al., "Nonlinear Model Predictive Control for Dynamic Obstacle Avoidance," IEEE Robotics and Automation Letters, 2020.
-
-10. Almakhles, "Robust Backstepping Sliding Mode Control for Quadrotor UAVs," IEEE Access, 2019.
