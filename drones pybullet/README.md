@@ -1,9 +1,6 @@
 # Quaternion-Based Attitude & 3D Trajectory Tracking for Quadrotor UAVs in PyBullet
 
-Replication and 3D extension of the IEEE conference paper:
-> **"Quaternion-Based Attitude Tracking Control Design for UAVs"**  
-> *Qain-Rong Lin and Jen-te Yu*  
-> 2024 International Automatic Control Conference (CACS 2024)
+
 
 ---
 
