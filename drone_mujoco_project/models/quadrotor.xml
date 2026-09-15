@@ -1,0 +1,77 @@
+<mujoco model="quadrotor">
+
+    <!-- Step 3: Simulation Parameters (timestep=0.002, gravity=-9.81 m/s^2) -->
+    <option timestep="0.002" gravity="0 0 -9.81"/>
+
+    <asset>
+        <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="300" height="300"/>
+        <material name="groundplane" texture="groundplane" texrepeat="5 5" texuniform="true"/>
+        <material name="body_mat" rgba="0.15 0.45 0.85 1.0" metallic="0.4"/>
+        <material name="arm_mat" rgba="0.2 0.2 0.2 1.0"/>
+        <material name="rotor1_mat" rgba="0.2 0.85 0.2 0.7"/> <!-- Motor 1 (Front +X) Green -->
+        <material name="rotor_mat" rgba="0.85 0.2 0.2 0.7"/>  <!-- Motors 2, 3, 4 Red -->
+    </asset>
+
+    <worldbody>
+        <light pos="0 0 10" dir="0 0 -1" directional="true"/>
+        
+        <!-- Step 3: Ground Plane -->
+        <geom name="ground" type="plane" size="20 20 0.1" material="groundplane"/>
+
+        <!-- Destination Target Visual Marker (Mocap Body) -->
+        <body name="target_marker" pos="3.0 3.0 2.5" mocap="true">
+            <geom name="target_geom" type="sphere" size="0.12" rgba="0.15 0.9 0.2 0.7" contype="0" conaffinity="0"/>
+            <site name="target_site" pos="0 0 0" size="0.03"/>
+        </body>
+
+        <!-- Step 4 & 5: Drone Central Body with Free Joint and Inertia -->
+        <body name="quadrotor" pos="0 0 1.0">
+            <!-- Step 4: Free Joint for 6-DOF translation and rotation -->
+            <freejoint name="quad_free"/>
+
+            <!-- Step 5: Mass = 1.0 kg, Inertia J = diag(0.1, 0.1, 0.12) -->
+            <inertial pos="0 0 0" mass="1.0" diaginertia="0.1 0.1 0.12"/>
+
+            <!-- Central Body Geometry -->
+            <geom name="main_body" type="box" size="0.25 0.25 0.08" material="body_mat"/>
+
+            <!-- Step 6: Four Visual Cross Arms (L = 0.4m) -->
+            <geom name="arm1" type="cylinder" fromto="0 0 0  0.4 0 0" size="0.015" material="arm_mat"/>
+            <geom name="arm2" type="cylinder" fromto="0 0 0  0 0.4 0" size="0.015" material="arm_mat"/>
+            <geom name="arm3" type="cylinder" fromto="0 0 0 -0.4 0 0" size="0.015" material="arm_mat"/>
+            <geom name="arm4" type="cylinder" fromto="0 0 0  0 -0.4 0" size="0.015" material="arm_mat"/>
+
+            <!-- Step 7: Four Rotor Objects (Visual Discs & Sites) -->
+            <!-- Motor 1 (Front +X) -->
+            <geom name="rotor1" type="cylinder" pos="0.4 0 0.04" size="0.1 0.005" material="rotor1_mat"/>
+            <site name="rotor1_site" pos="0.4 0 0.04" size="0.02"/>
+
+            <!-- Motor 2 (Left +Y) -->
+            <geom name="rotor2" type="cylinder" pos="0 0.4 0.04" size="0.1 0.005" material="rotor_mat"/>
+            <site name="rotor2_site" pos="0 0.4 0.04" size="0.02"/>
+
+            <!-- Motor 3 (Back -X) -->
+            <geom name="rotor3" type="cylinder" pos="-0.4 0 0.04" size="0.1 0.005" material="rotor_mat"/>
+            <site name="rotor3_site" pos="-0.4 0 0.04" size="0.02"/>
+
+            <!-- Motor 4 (Right -Y) -->
+            <geom name="rotor4" type="cylinder" pos="0 -0.4 0.04" size="0.1 0.005" material="rotor_mat"/>
+            <site name="rotor4_site" pos="0 -0.4 0.04" size="0.02"/>
+
+            <!-- Center Site -->
+            <site name="quad_center" pos="0 0 0" size="0.02"/>
+        </body>
+    </worldbody>
+
+    <!-- Step 8: Motor Thrust Actuators -->
+    <actuator>
+        <general name="thrust_motor1" site="rotor1_site" gear="0 0 1 0 0 0" ctrlrange="0 20"/>
+        <general name="thrust_motor2" site="rotor2_site" gear="0 0 1 0 0 0" ctrlrange="0 20"/>
+        <general name="thrust_motor3" site="rotor3_site" gear="0 0 1 0 0 0" ctrlrange="0 20"/>
+        <general name="thrust_motor4" site="rotor4_site" gear="0 0 1 0 0 0" ctrlrange="0 20"/>
+        
+        <!-- Reaction Yaw Torque Actuator -->
+        <general name="yaw_torque" site="quad_center" gear="0 0 0 0 0 1" ctrlrange="-10 10"/>
+    </actuator>
+
+</mujoco>
