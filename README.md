@@ -8,13 +8,13 @@
 
 ## Team Members
 
-| Name | Roll Number ||
-|---|---|---|
-| N.Supreeth | CB.SC.U4AIE24139 ||
-| P.Rohit | CB.SC.U4AIE24145 ||
-| B.Nikhil | CB.SC.U4AIE24063 ||
-| M.Phanendhra | CB.SC.U4AIE24032 ||
-| D.Koushik | CB.SC.U4AIE24167 ||
+| Name | Roll Number |
+|---|---|
+| N.Supreeth | CB.SC.U4AIE24139 |
+| P.Rohit | CB.SC.U4AIE24145 |
+| B.Nikhil | CB.SC.U4AIE24063 |
+| M.Phanendhra | CB.SC.U4AIE24032 |
+| D.Koushik | CB.SC.U4AIE24167 |
 
 ---
 
