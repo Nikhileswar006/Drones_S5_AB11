@@ -10,11 +10,11 @@
 
 | Name | Roll Number ||
 |---|---|---|
-| Supreeth | CB.SC.U4AIE24139 ||
-| Rohit | CB.SC.U4AIE24145 ||
-| Nikhil | CB.SC.U4AIE24063 ||
-| Phanendhra | CB.SC.U4AIE24032 ||
-| Koushik | CB.SC.U4AIE24167 ||
+| N.Supreeth | CB.SC.U4AIE24139 ||
+| P.Rohit | CB.SC.U4AIE24145 ||
+| B.Nikhil | CB.SC.U4AIE24063 ||
+| M.Phanendhra | CB.SC.U4AIE24032 ||
+| D.Koushik | CB.SC.U4AIE24167 ||
 
 ---
 
