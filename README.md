@@ -1,3 +1,9 @@
+<p align="center">
+  <img src="Amrita Vishwa Vidhyapeetam" width="200">
+</p>
+
+
+
 # Quaternion-Based Attitude Tracking Control for a Quadrotor UAV
 
 ## Team Members
