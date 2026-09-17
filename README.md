@@ -578,13 +578,16 @@ The simulation results demonstrate the expected convergence of the tracking erro
 ```mermaid
 flowchart LR
     A["Desired Attitude<br/>q_ref"] --> B["Quaternion Error<br/>q_err = q_ref* ⊗ q"]
-    B --> C["Angular Velocity Error<br/>ω_err = ω − ω_ref"]
-    C --> D["Virtual Control<br/>ω_err,d"]
-    D --> E["Backstepping Error<br/>δ = ω_err − ω_err,d"]
-    E --> F["Control Torque<br/>τ"]
+    Aref["Desired Angular Velocity<br/>ω_ref"] --> C["Angular Velocity Error<br/>ω_err = ω − ω_ref"]
+    H["Actual State<br/>q, ω"] --> B
+    H --> C
+    B --> D["Virtual Control<br/>ω_err,d = −k1 q_err* ⊗ (q_err − q_i)"]
+    C --> E["Backstepping Error<br/>δ = ω_err − ω_err,d"]
+    D --> E
+    E --> F["Control Torque<br/>τ = τ1 + τ2"]
+    H --> F
     F --> G["Quadrotor<br/>Rotational Dynamics"]
-    G --> H["Actual State<br/>q, ω"]
-    H --> B
+    G --> H
 ```
 
 # Research Paper
