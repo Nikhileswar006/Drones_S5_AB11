@@ -4,9 +4,9 @@
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
-1. **Exact CACS 2024 Paper Implementation**:
+1. **Implementation**:
    - Quaternion algebra (Equations 1–7) with scalar-first convention $q = [q_0, q_1, q_2, q_3]^T$.
    - Quaternion kinematics $\dot{q} = \frac{1}{2} q \otimes [0, \omega]^T$ (Eq. 8).
    - Quaternion tracking error $q_{err} = q_{ref}^* \otimes q$ (Eq. 10).
@@ -33,7 +33,7 @@
 
 ---
 
-## 📦 Requirements & Installation
+## Requirements & Installation
 
 Only standard Python packages are needed:
 
@@ -43,7 +43,7 @@ pip install pybullet numpy matplotlib
 
 ---
 
-## 💻 How to Run
+## How to Run
 
 ### 1. Run the Full 3D UAV Mission in PyBullet (Start to Destination)
 Flies the UAV following a smooth 3D trajectory with real-time visual rendering and camera tracking.
@@ -78,7 +78,7 @@ python verify_paper_standalone.py
 
 ---
 
-## 📁 File Structure
+##  File Structure
 
 | File | Description |
 |---|---|
