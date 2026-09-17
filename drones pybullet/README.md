@@ -17,7 +17,7 @@
 
 2. **3D Flight Extension (Start to Destination Navigation)**:
    - Cascaded SE(3) outer-loop position controller converting smooth 3D trajectory tracking into collective thrust $T$, attitude reference $q_{ref}$, and feedforward angular velocity $\omega_{ref}$.
-   - 5th-order (quintic polynomial) minimum-jerk trajectory connecting any defined Start point $\mathbf{p}_{\text{start}}$ to Destination $\mathbf{p}_{\text{goal}}$ with smooth $C^2$ position, velocity, and acceleration profiles.
+   - 5th-order (quintic polynomial) minimum-jerk trajectory connecting any defined Start point to Destination  with smooth $C^2$ position, velocity, and acceleration profiles.
 
 3. **Realistic PyBullet 3D Simulation**:
    - Custom quadrotor multi-body with realistic visual chassis and rotor discs (red front, blue rear).
