@@ -41,12 +41,16 @@ def main():
     target_pos = np.array(args.target, dtype=float)
     
     print("=" * 75)
-    print(" DRONE MUJOCO PROJECT — COMPLETE DESTINATION-BASED SIMULATION ")
+    print(" DRONE MUJOCO PROJECT -- COMPLETE DESTINATION-BASED SIMULATION ")
     print("=" * 75)
-    print(f" Start Position P0       : {start_pos}")
-    print(f" Destination Setpoint Pd : {target_pos}")
-    print(f" Duration                : {args.duration} s")
-    print(f" 3D Viewer GUI          : {'ENABLED' if args.gui else 'DISABLED'}")
+    print(f" [BLUE] START POSITION (Blue Sphere)       : {start_pos}")
+    print(f" [GREEN] DESTINATION GOAL (Green Sphere)    : {target_pos}")
+    print(f" Duration                                   : {args.duration} s")
+    print(f" 3D Viewer GUI                              : {'ENABLED' if args.gui else 'DISABLED'}")
+    print("=" * 75)
+    print(" 3D VIEWER COLOR GUIDE:")
+    print("    * BLUE SPHERE  = START POINT")
+    print("    * GREEN SPHERE = DESTINATION GOAL")
     print("=" * 75)
 
     # 1. Instantiate MuJoCo Model & Data
@@ -66,15 +70,28 @@ def main():
     data.qpos[3:7] = np.array([1.0, 0.0, 0.0, 0.0]) # Identity quat
     data.qvel[:] = 0.0
     
-    # Update Target Destination Marker in MuJoCo
-    if model.nmocap > 0:
-        data.mocap_pos[0] = target_pos
+    
+    # Update Start Marker (Blue) and Target Destination Marker (Green) in MuJoCo
+    start_body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "Start_Point")
+    if start_body_id == -1:
+        start_body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "start_marker")
+        
+    target_body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "Destination")
+    if target_body_id == -1:
+        target_body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "target_marker")
+    
+    if start_body_id != -1 and model.body_mocapid[start_body_id] != -1:
+        data.mocap_pos[model.body_mocapid[start_body_id]] = start_pos
+    if target_body_id != -1 and model.body_mocapid[target_body_id] != -1:
+        data.mocap_pos[model.body_mocapid[target_body_id]] = target_pos
+        
     mujoco.mj_forward(model, data)
 
     # 4. Initialize Passive Viewer if GUI enabled
     viewer = None
     if args.gui:
         viewer = mujoco.viewer.launch_passive(model, data)
+        viewer.opt.label = mujoco.mjtLabel.mjLABEL_BODY # Displays 3D floating text names above markers!
         viewer.cam.azimuth = 135
         viewer.cam.elevation = -25
         viewer.cam.distance = 12.0

@@ -100,9 +100,13 @@ def plot_extension_results(data_dict: dict, save_dir: str = RESULTS_DIR):
     # Plot actual flight trajectory
     ax.plot(pos[:, 0], pos[:, 1], pos[:, 2], color='navy', linewidth=2.5, label='Actual Flight Path')
     
-    # Plot Start and Goal Markers
-    ax.scatter(p0[0], p0[1], p0[2], color='blue', s=100, marker='o', label=f'Start ({p0[0]}, {p0[1]}, {p0[2]})')
-    ax.scatter(pd[0], pd[1], pd[2], color='green', s=150, marker='*', label=f'Goal ({pd[0]}, {pd[1]}, {pd[2]})')
+    # Plot Start and Goal Markers with clear clean names
+    ax.scatter(p0[0], p0[1], p0[2], color='blue', s=120, marker='o', label=f'Start Point: [{p0[0]:.1f}, {p0[1]:.1f}, {p0[2]:.1f}]')
+    ax.scatter(pd[0], pd[1], pd[2], color='green', s=160, marker='*', label=f'Destination: [{pd[0]:.1f}, {pd[1]:.1f}, {pd[2]:.1f}]')
+    
+    # 3D In-Graph Text Labels beside the markers
+    ax.text(p0[0], p0[1], p0[2] + 0.25, '  Start Point', color='blue', fontweight='bold', fontsize=10)
+    ax.text(pd[0], pd[1], pd[2] + 0.25, '  Destination', color='green', fontweight='bold', fontsize=10)
     
     ax.set_title("Step 36: Actual 3D Flight Trajectory (Un-scripted Error-Driven Path)", fontsize=12, fontweight='bold')
     ax.set_xlabel("X Position (m)")

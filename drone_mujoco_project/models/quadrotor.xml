@@ -3,63 +3,137 @@
     <!-- Step 3: Simulation Parameters (timestep=0.002, gravity=-9.81 m/s^2) -->
     <option timestep="0.002" gravity="0 0 -9.81"/>
 
+    <visual>
+        <global offwidth="1920" offheight="1080"/>
+        <quality shadowsize="2048"/>
+    </visual>
+
     <asset>
         <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="300" height="300"/>
         <material name="groundplane" texture="groundplane" texrepeat="5 5" texuniform="true"/>
         <material name="body_mat" rgba="0.15 0.45 0.85 1.0" metallic="0.4"/>
-        <material name="arm_mat" rgba="0.2 0.2 0.2 1.0"/>
-        <material name="rotor1_mat" rgba="0.2 0.85 0.2 0.7"/> <!-- Motor 1 (Front +X) Green -->
-        <material name="rotor_mat" rgba="0.85 0.2 0.2 0.7"/>  <!-- Motors 2, 3, 4 Red -->
+        <material name="canopy_mat" rgba="0.1 0.75 0.95 0.9" metallic="0.6"/>
+        <material name="motor_mat" rgba="0.12 0.14 0.18 1.0" metallic="0.8"/>
+        <material name="arm_mat" rgba="0.18 0.18 0.22 1.0"/>
+        <material name="rotor1_mat" rgba="0.15 0.95 0.25 0.8"/> <!-- Motor 1 (Front +X) Vibrant Green -->
+        <material name="rotor_mat" rgba="0.95 0.2 0.25 0.8"/>   <!-- Motors 2, 3, 4 Vibrant Red -->
+        <material name="obs_pillar_mat" rgba="0.95 0.28 0.24 1.0" metallic="0.3"/>
+        <material name="obs_tower_mat" rgba="0.25 0.45 0.85 1.0" metallic="0.3"/>
+        <material name="obs_sphere_mat" rgba="0.95 0.65 0.12 1.0" metallic="0.5"/>
+        <material name="obs_pylon_mat" rgba="0.85 0.22 0.55 1.0" metallic="0.3"/>
+        <material name="obs_pole_mat" rgba="0.45 0.50 0.55 1.0" metallic="0.7"/>
     </asset>
 
     <worldbody>
         <light pos="0 0 10" dir="0 0 -1" directional="true"/>
         
-        <!-- Step 3: Ground Plane -->
-        <geom name="ground" type="plane" size="20 20 0.1" material="groundplane"/>
+        <!-- Step 3: Ground Plane (Expanded for Long-Distance Navigation) -->
+        <geom name="ground" type="plane" size="35 35 0.1" material="groundplane"/>
 
-        <!-- Destination Target Visual Marker (Mocap Body) -->
-        <body name="target_marker" pos="3.0 3.0 2.5" mocap="true">
-            <geom name="target_geom" type="sphere" size="0.12" rgba="0.15 0.9 0.2 0.7" contype="0" conaffinity="0"/>
+        <!-- Start Position Visual Marker (Mocap Body - Blue) -->
+        <body name="Start_Point" pos="0 0 1.0" mocap="true">
+            <geom name="start_geom" type="sphere" size="0.16" rgba="0.15 0.5 1.0 0.8" contype="0" conaffinity="0"/>
+            <site name="start_site" pos="0 0 0" size="0.03"/>
+        </body>
+
+        <!-- Intermediate Waypoint 1 (Mocap Body - Amber/Orange) -->
+        <body name="WP1" pos="3.0 2.0 2.5" mocap="true">
+            <geom name="wp1_geom" type="sphere" size="0.14" rgba="0.95 0.65 0.1 0.75" contype="0" conaffinity="0"/>
+            <site name="wp1_site" pos="0 0 0" size="0.02"/>
+        </body>
+
+        <!-- Intermediate Waypoint 2 (Mocap Body - Amber/Orange) -->
+        <body name="WP2" pos="6.0 8.0 3.5" mocap="true">
+            <geom name="wp2_geom" type="sphere" size="0.14" rgba="0.95 0.65 0.1 0.75" contype="0" conaffinity="0"/>
+            <site name="wp2_site" pos="0 0 0" size="0.02"/>
+        </body>
+
+        <!-- Intermediate Waypoint 3 (Mocap Body - Amber/Orange) -->
+        <body name="WP3" pos="10.0 4.0 4.0" mocap="true">
+            <geom name="wp3_geom" type="sphere" size="0.14" rgba="0.95 0.65 0.1 0.75" contype="0" conaffinity="0"/>
+            <site name="wp3_site" pos="0 0 0" size="0.02"/>
+        </body>
+
+        <!-- Destination Target Visual Marker (Mocap Body - Green) -->
+        <body name="Destination" pos="14.0 12.0 5.0" mocap="true">
+            <geom name="target_geom" type="sphere" size="0.18" rgba="0.1 0.95 0.2 0.8" contype="0" conaffinity="0"/>
             <site name="target_site" pos="0 0 0" size="0.03"/>
         </body>
 
+        <!-- ============================================================ -->
+        <!-- PHYSICAL COLLISION OBSTACLES PLACED ALONG WAYPOINT CORRIDORS -->
+        <!-- ============================================================ -->
+        <!-- Obstacle 1: Industrial Pillar (Cylinder) on Segment 1 (Start -> WP1) -->
+        <body name="Obs1_Pillar" pos="2.20 1.50 0.85">
+            <geom name="obs1_geom" type="cylinder" size="0.16 0.85" material="obs_pillar_mat" contype="1" conaffinity="1"/>
+            <site name="obs1_site" pos="0 0 0.85" size="0.03"/>
+        </body>
+
+        <!-- Obstacle 2: Urban Tower (Box) on Segment 2 (WP1 -> WP2) -->
+        <body name="Obs2_Tower" pos="4.5 5.0 1.00">
+            <geom name="obs2_geom" type="box" size="0.20 0.20 1.00" material="obs_tower_mat" contype="1" conaffinity="1"/>
+            <site name="obs2_site" pos="0 0 1.00" size="0.03"/>
+        </body>
+
+        <!-- Obstacle 3: Aerial Hazard Sphere on Segment 3 (WP2 -> WP3) -->
+        <body name="Obs3_Sphere" pos="8.0 6.0 3.75">
+            <geom name="obs3_geom" type="sphere" size="0.22" material="obs_sphere_mat" contype="1" conaffinity="1"/>
+            <geom name="obs3_mast" type="cylinder" fromto="0 0 -3.75 0 0 0" size="0.04" material="obs_pole_mat" contype="1" conaffinity="1"/>
+            <site name="obs3_site" pos="0 0 0.22" size="0.03"/>
+        </body>
+
+        <!-- Obstacle 4: Tall Pylon (Cylinder) on Segment 4 (WP3 -> Destination) -->
+        <body name="Obs4_Pylon" pos="12.0 8.0 1.40">
+            <geom name="obs4_geom" type="cylinder" size="0.18 1.40" material="obs_pylon_mat" contype="1" conaffinity="1"/>
+            <site name="obs4_site" pos="0 0 1.40" size="0.03"/>
+        </body>
+
+
+
         <!-- Step 4 & 5: Drone Central Body with Free Joint and Inertia -->
-        <body name="quadrotor" pos="0 0 1.0">
+        <body pos="0 0 1.0">
             <!-- Step 4: Free Joint for 6-DOF translation and rotation -->
             <freejoint name="quad_free"/>
 
             <!-- Step 5: Mass = 1.0 kg, Inertia J = diag(0.1, 0.1, 0.12) -->
             <inertial pos="0 0 0" mass="1.0" diaginertia="0.1 0.1 0.12"/>
 
-            <!-- Central Body Geometry -->
-            <geom name="main_body" type="box" size="0.25 0.25 0.08" material="body_mat"/>
+            <!-- Central Body Geometry (Increased size for enhanced 3D visibility) -->
+            <geom name="main_body" type="box" size="0.48 0.48 0.12" material="body_mat"/>
+            <geom name="canopy" type="ellipsoid" pos="0 0 0.10" size="0.32 0.32 0.10" material="canopy_mat"/>
+            <geom name="heading_arrow" type="cylinder" fromto="0.20 0 0.12  0.50 0 0.12" size="0.035" material="rotor1_mat"/>
 
-            <!-- Step 6: Four Visual Cross Arms (L = 0.4m) -->
-            <geom name="arm1" type="cylinder" fromto="0 0 0  0.4 0 0" size="0.015" material="arm_mat"/>
-            <geom name="arm2" type="cylinder" fromto="0 0 0  0 0.4 0" size="0.015" material="arm_mat"/>
-            <geom name="arm3" type="cylinder" fromto="0 0 0 -0.4 0 0" size="0.015" material="arm_mat"/>
-            <geom name="arm4" type="cylinder" fromto="0 0 0  0 -0.4 0" size="0.015" material="arm_mat"/>
+            <!-- Four Visual Cross Arms (L = 0.85m) -->
+            <geom name="arm1" type="cylinder" fromto="0 0 0  0.85 0 0" size="0.032" material="arm_mat"/>
+            <geom name="arm2" type="cylinder" fromto="0 0 0  0 0.85 0" size="0.032" material="arm_mat"/>
+            <geom name="arm3" type="cylinder" fromto="0 0 0 -0.85 0 0" size="0.032" material="arm_mat"/>
+            <geom name="arm4" type="cylinder" fromto="0 0 0  0 -0.85 0" size="0.032" material="arm_mat"/>
 
-            <!-- Step 7: Four Rotor Objects (Visual Discs & Sites) -->
+            <!-- Motor Cans (Hubs) -->
+            <geom name="motor1_can" type="cylinder" pos="0.85 0 0.02" size="0.06 0.035" material="motor_mat"/>
+            <geom name="motor2_can" type="cylinder" pos="0 0.85 0.02" size="0.06 0.035" material="motor_mat"/>
+            <geom name="motor3_can" type="cylinder" pos="-0.85 0 0.02" size="0.06 0.035" material="motor_mat"/>
+            <geom name="motor4_can" type="cylinder" pos="0 -0.85 0.02" size="0.06 0.035" material="motor_mat"/>
+
+            <!-- Four Large Rotor Propeller Discs & Sites -->
             <!-- Motor 1 (Front +X) -->
-            <geom name="rotor1" type="cylinder" pos="0.4 0 0.04" size="0.1 0.005" material="rotor1_mat"/>
-            <site name="rotor1_site" pos="0.4 0 0.04" size="0.02"/>
+            <geom name="rotor1" type="cylinder" pos="0.85 0 0.06" size="0.28 0.015" material="rotor1_mat"/>
+            <site name="rotor1_site" pos="0.85 0 0.06" size="0.03"/>
 
             <!-- Motor 2 (Left +Y) -->
-            <geom name="rotor2" type="cylinder" pos="0 0.4 0.04" size="0.1 0.005" material="rotor_mat"/>
-            <site name="rotor2_site" pos="0 0.4 0.04" size="0.02"/>
+            <geom name="rotor2" type="cylinder" pos="0 0.85 0.06" size="0.28 0.015" material="rotor_mat"/>
+            <site name="rotor2_site" pos="0 0.85 0.06" size="0.03"/>
 
             <!-- Motor 3 (Back -X) -->
-            <geom name="rotor3" type="cylinder" pos="-0.4 0 0.04" size="0.1 0.005" material="rotor_mat"/>
-            <site name="rotor3_site" pos="-0.4 0 0.04" size="0.02"/>
+            <geom name="rotor3" type="cylinder" pos="-0.85 0 0.06" size="0.28 0.015" material="rotor_mat"/>
+            <site name="rotor3_site" pos="-0.85 0 0.06" size="0.03"/>
 
             <!-- Motor 4 (Right -Y) -->
-            <geom name="rotor4" type="cylinder" pos="0 -0.4 0.04" size="0.1 0.005" material="rotor_mat"/>
-            <site name="rotor4_site" pos="0 -0.4 0.04" size="0.02"/>
+            <geom name="rotor4" type="cylinder" pos="0 -0.85 0.06" size="0.28 0.015" material="rotor_mat"/>
+            <site name="rotor4_site" pos="0 -0.85 0.06" size="0.03"/>
 
             <!-- Center Site -->
-            <site name="quad_center" pos="0 0 0" size="0.02"/>
+            <site name="quad_center" pos="0 0 0" size="0.03"/>
         </body>
     </worldbody>
 

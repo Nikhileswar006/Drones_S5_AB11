@@ -3,24 +3,12 @@ from typing import Tuple
 from controllers.quaternion import quaternion_error
 
 class BacksteppingController:
-    """
-    Steps 14-19: Base Paper Attitude Backstepping Controller (CACS 2024).
-    
-    Inputs:
-      q        : Current quaternion [qw, qx, qy, qz]
-      q_ref    : Desired quaternion [qw, qx, qy, qz]
-      omega    : Current angular velocity [wx, wy, wz]
-      omega_ref: Desired angular velocity [wx, wy, wz]
-      
-    Outputs:
-      tau      : Control torques [tau_x, tau_y, tau_z]
-    """
+  
     def __init__(self, J: np.ndarray = np.diag([0.1, 0.1, 0.12]), k1: float = 20.0, k2: float = 2.0):
         self.J = J
         self.J_inv = np.linalg.inv(J)
         self.k1 = k1
         self.k2 = k2
-
     def compute(self, quat: np.ndarray, omega: np.ndarray, 
                 q_ref: np.ndarray, omega_ref: np.ndarray = np.zeros(3),
                 omega_ref_dot: np.ndarray = np.zeros(3),
