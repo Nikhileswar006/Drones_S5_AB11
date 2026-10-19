@@ -461,7 +461,8 @@ The reference trajectory provides the desired motion that the controller attempt
 
 ---
 ## 12. UAV 3D Simulation & Control Environment
-A high-fidelity 6-DOF simulation and interactive 3D WebGL environment designed to validate the **Quaternion-Based Backstepping Controller** under realistic wind, turbulence, and obstacle conditions.
+
+An interactive 3D WebGL environment designed to validate the **Quaternion-Based Backstepping Controller** under realistic wind, turbulence, and obstacle conditions.
 ---
 ### 12.1 Quadrotor Physical Modeling & Dynamics
 Modeled as a rigid body with 4 rotors in an 'X' frame:
