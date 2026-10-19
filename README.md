@@ -544,7 +544,7 @@ A dedicated, non-blocking desktop graphical HUD (built with Tkinter) runs alongs
 ---
 ## 14. UAV 3D Simulation & Control Environment
 
-To test our **Quaternion-Based Backstepping Controller** on realistic 6-DOF (Degrees-of-Freedom) flight dynamics, we developed a full physics-based simulation and an interactive 3D WebGL environment. It simulates real flight conditions—including wind disturbances, obstacle avoidance, and live flight telemetry.
+To test our **Quaternion-Based Backstepping Controller** on realistic 6-DOF (Degrees-of-Freedom) flight dynamics, we developed a full physics-based simulation and an interactive 3D WebGL environment. It simulates real flight conditions—including wind disturbances and obstacle avoidance.
 
 ---
 
@@ -587,7 +587,7 @@ Real drones outdoors do not fly in calm, still air. We injected realistic aerody
 
 ---
 
-### 14.4 Real-Time Telemetry Dashboard (HUD)
+### 14.4 Real-Time Telemetry Dashboard 
 
 A live telemetry panel on the right side of the screen monitors the flight in real time:
 
@@ -596,13 +596,6 @@ A live telemetry panel on the right side of the screen monitors the flight in re
 * **Attitude (Roll, Pitch, Yaw):** Real-time body tilt angles in degrees ($\phi, \theta, \psi$).
 * **Actuator Telemetry:** Total motor thrust ($T$) in Newtons and control torques ($\tau_x, \tau_y, \tau_z$) in $\text{N}\cdot\text{m}$.
 * **Control States:** Internal backstepping error states ($z_1, z_2$) proving the controller remains stable throughout the flight.
-
----
-
-### 14.5 Visual Flight Path & Trail System
-
-* **Electric Cyan 3D Tube:** The planned, collision-free **Reference Path** with vertical drop pillars down to ground target pads. (Can be toggled ON/OFF with the on-screen button).
-* **Flame Orange Ribbon:** The drone's **Actual Flight Trail** drawn in real time behind the drone, allowing visual verification of tracking precision despite wind disturbances.
 ---
 # Results
 
