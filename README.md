@@ -457,52 +457,72 @@ and its derivative is:
 =
 \frac{d\omega_{\mathrm{ref}}}{dt}
 ```
-
 The reference trajectory provides the desired motion that the controller attempts to track.
 
 ---
+## 12. UAV 3D Simulation & Control Environment
 
-## 12. Simulation Setup
+To test our **Quaternion-Based Backstepping Controller** on realistic 6-DOF (Degrees-of-Freedom) flight dynamics, we developed a high-fidelity physics simulation and an interactive 3D WebGL environment. It simulates real flight conditions—including atmospheric wind disturbances, autonomous reactive obstacle avoidance, and live telemetry tracking.
 
-The numerical simulation uses the following parameters:
+---
 
-| Parameter | Value |
-|---|---:|
-| Inertia matrix $J$ | $\mathrm{diag}(0.1,\ 0.1,\ 0.12)$ |
-| Controller gain $k_1$ | 20 |
-| Controller gain $k_2$ | 2 |
+### 12.1 Quadrotor Physical Modeling & Dynamics
 
-Initial angular velocity:
+The quadrotor is modeled as a rigid body with four rotors configured in an 'X' frame:
 
-```math
-\omega(0)
-=
-[-0.1,\ -0.2,\ 0.2]^T
-```
+| Physical Parameter | Value | Description |
+| :--- | :--- | :--- |
+| **Total Mass ($m$)** | `1.2 kg` | Drone airframe, battery, and avionics |
+| **Inertia Matrix ($J$)** | `diag(0.1, 0.1, 0.12) kg·m²` | Rotational inertia along X, Y, and Z |
+| **Arm Length ($L$)** | `0.225 m` (22.5 cm) | Center of gravity to each motor hub |
+| **Control Frequency** | `200 Hz` ($\Delta t = 5.0\text{ ms}$) | High-speed inner attitude control cycle |
+| **Gravitational Acceleration ($g$)** | `9.81 m/s²` | Standard downward Earth gravity |
+| **Max Tilt Angle** | `35°` | Flight safety limit to prevent tumbling |
 
-Initial reference angular velocity:
+* **Collective Thrust ($T$):** The total upward force produced by all 4 rotors along the drone's body $Z$-axis. In hover, $T \approx 11.8\text{ N}$ to balance gravity ($m \cdot g$).
+* **Control Torques ($\boldsymbol{\tau}$):** Three-axis rotational torques ($[\tau_x, \tau_y, \tau_z]$ in $\text{N}\cdot\text{m}$) computed by the quaternion backstepping controller to bank, pitch, and yaw the drone.
 
-```math
-\omega_{\mathrm{ref}}(0)
-=
-[-0.22,\ -0.7,\ 0.3]^T
-```
+---
 
-Initial quaternion:
+### 12.2 Trajectory Planning & Reactive Obstacle Avoidance
 
-```math
-q(0)
-=
-[0.94628,\ -0.1541,\ 0.19051,\ -0.21098]^T
-```
+The navigation system separates the nominal mission corridor from active reactive collision avoidance:
 
-reference quaternion:
+* **Nominal Flight Corridor:** The reference path is a direct, straight line connecting consecutive waypoints (`Start → WP1 → WP2 → ...`).
+* **How Obstacle Avoidance is Done (Method & Mechanism):**
+  1. **Perpendicular Normal Vector ($\hat{n}_{\text{lat}}$):** When an obstacle tower ($r = 0.45\text{ m}$) is situated along the corridor, the algorithm calculates a $90^\circ$ horizontal normal vector pointing laterally away from the obstacle.
+  2. **$C^2$-Continuous Smooth Evasive Detour:** Rather than making abrupt, jerky turns that cause motor saturation, the system uses a smooth bell-curve polynomial shaping function:
+     $$P(s) = 64 \cdot s^3 \cdot (1 - s)^3 \quad (s \in [0, 1] \text{ segment progress})$$
+     * *At start ($s=0$):* Displacement is zero (drone flies on the straight line).
+     * *At midpoint ($s=0.5$):* Displaces the drone smoothly by **$1.15\text{ m}$ to the side**, clearing the obstacle tower with a safe $>0.70\text{ m}$ buffer margin.
+     * *At end ($s=1.0$):* Displacement smoothly returns to zero with zero velocity/acceleration error.
+  3. **Automatic Path Re-convergence:** Once clear of the obstacle, the position controller guides the drone **straight back onto the nominal reference line** toward the target waypoint.
+* **Visual Impact:** Observers clearly see the nominal straight reference line (Cyan) while the drone actively veers around the obstacle (Orange ribbon) and returns to course.
 
-```math
-q_{\mathrm{ref}}(0)
-=
-[0.74628,\ -0.2541,\ 0.49051,\ -0.31098]^T
-```
+---
+
+### 12.3 Real-World Wind & Disturbance Model
+
+To prevent the drone from flying unrealistically in a mathematical vacuum, we injected a multi-layered atmospheric disturbance model directly into the rigid-body 6-DOF physics equations:
+
+* **What Noise We Used & How It Works:**
+  1. **Steady Crosswind:** A constant directional wind vector (`[1.5, -1.1, 0.3] m/s`) that continuously exerts aerodynamic drag force on the airframe.
+  2. **Dryden Multi-Frequency Gusts:** Sinusoidal gusts oscillating at three distinct frequencies ($0.8\text{ Hz}$, $1.4\text{ Hz}$, $2.2\text{ Hz}$) with amplitudes up to $2.2\text{ m/s}$ to simulate unpredictable wind buffeting.
+  3. **Aerodynamic Turbulence & Propeller Wake:** High-frequency Gaussian force noise ($\sigma = 0.56\text{ N}$) and blade-flapping torque noise ($\sigma = 0.05\text{ N}\cdot\text{m}$).
+* **Flight Effect:** This causes a natural outdoor flight sway of $\pm 10\text{ to }15\text{ cm}$, demonstrating that the quaternion backstepping controller actively resists environmental wind forces.
+* **Controlling the Noise:** The entire disturbance intensity can be dynamically scaled in the terminal using the `--noise-factor` flag (e.g. `--noise-factor 0.5` for calm breeze, `2.0` for heavy storm, or `--no-noise` for ideal benchmark conditions).
+
+---
+
+### 12.4 Real-Time Telemetry Dashboard (HUD)
+
+A live telemetry panel on the right side of the screen monitors the flight in real time:
+
+* **Flight Clock & Target:** Mission elapsed time and current target waypoint index.
+* **Tracking Error ($\|e_p\|$):** Distance between the drone's actual position and the straight reference line (in meters). While dodging an obstacle, this reflects the active lateral evasion clearance.
+* **Attitude (Roll, Pitch, Yaw):** Real-time body tilt angles in degrees ($\phi, \theta, \psi$).
+* **Actuator Telemetry:** Total collective thrust ($T$) in Newtons and three-axis control torques ($\tau_x, \tau_y, \tau_z$) in $\text{N}\cdot\text{m}$.
+* **Control States:** Internal backstepping tracking error states ($z_1, z_2$) proving the controller remains stable throughout all maneuvers.
 
 ---
 ## 13. PyBullet 3D Simulation Environment
@@ -640,63 +660,14 @@ To test our **Quaternion-Based Backstepping Controller** on realistic 6-DOF (Deg
 
 ---
 
-### 14.1 Quadrotor Physical Modeling & Dynamics
 
-The quadrotor is modeled as a rigid body with four rotors configured in an 'X' frame:
-
-| Physical Parameter | Value | Description |
-| :--- | :--- | :--- |
-| **Total Mass ($m$)** | `1.2 kg` | Drone frame, battery, and avionics |
-| **Inertia Matrix ($J$)** | `diag(0.1, 0.1, 0.12) kg·m²` | Rotational resistance along X, Y, and Z |
-| **Arm Length ($L$)** | `0.225 m` (22.5 cm) | Distance from drone center to each motor hub |
-| **Control Frequency** | `200 Hz` ($\Delta t = 5.0\text{ ms}$) | High-speed attitude control loop |
-| **Gravitational Acceleration ($g$)** | `9.81 m/s²` | Standard downward Earth gravity |
-| **Max Tilt Angle** | `35°` | Safety limit to prevent in-flight tumbling |
-
-* **Collective Thrust ($T$):** The total upward force produced by all 4 rotors along the drone's body $Z$-axis. In hover, $T \approx 11.8\text{ N}$ to balance gravity.
-* **Control Torques ($\boldsymbol{\tau}$):** Three-axis rotational torques ($[\tau_x, \tau_y, \tau_z]$ in $\text{N}\cdot\text{m}$) computed by the quaternion backstepping controller to bank, pitch, and turn the drone.
-
----
-
-### 14.2 Trajectory Planning & Obstacle Avoidance
-
-Instead of simple straight lines with jerky stop-and-go movements, the mission path uses smooth mathematical curves:
-
-* **Smooth Spline Trajectory:** Uses continuous 5th-order polynomial splines so that position, velocity, and acceleration transition smoothly from one waypoint to the next.
-* **Obstacle Clearance:** If an obstacle tower stands directly between two waypoints, the trajectory automatically curves around it with a **0.6 m safety margin**.
-* **Why the Reference Line Bends:** A quadrotor must tilt into its direction of acceleration. If the path were a straight line passing through a tower, the drone would follow it and crash. The curved path provides the drone with a safe, physically feasible route to follow.
-
----
-
-### 14.3 Real-World Wind & Disturbance Model
-
-Real drones outdoors do not fly in calm, still air. We injected realistic aerodynamic forces to verify that the controller can handle real-world conditions:
-
-* **Steady Crosswind:** A continuous breeze vector (`[1.5, -1.1, 0.3] m/s`) pushing against the airframe.
-* **Wind Gusts:** Multi-frequency gusts (up to `2.2 m/s`) that periodically buffet the drone from changing angles.
-* **Air Turbulence & Wake Noise:** Random aerodynamic force ($\sigma = 0.56\text{ N}$) and rotor torque noise ($\sigma = 0.05\text{ N}\cdot\text{m}$).
-* **Flight Effect:** This causes the drone to naturally sway by $\pm 10\text{ to }15\text{ cm}$, demonstrating that the controller actively resists wind forces to stay on course.
-
----
-
-### 14.4 Real-Time Telemetry Dashboard 
-
-A live telemetry panel on the right side of the screen monitors the flight in real time:
-
-* **Flight Clock & Target:** Mission elapsed time and the current target waypoint number.
-* **Tracking Error ($\|e_p\|$):** Euclidean distance between where the drone should be and where it actually is (in meters).
-* **Attitude (Roll, Pitch, Yaw):** Real-time body tilt angles in degrees ($\phi, \theta, \psi$).
-* **Actuator Telemetry:** Total motor thrust ($T$) in Newtons and control torques ($\tau_x, \tau_y, \tau_z$) in $\text{N}\cdot\text{m}$.
-* **Control States:** Internal backstepping error states ($z_1, z_2$) proving the controller remains stable throughout the flight.
----
-
-## **15. MuJoCo 3D Simulation Environment**
+## **14. MuJoCo 3D Simulation Environment**
 
 To test the **quaternion backstepping attitude controller** on a realistic 6-DOF drone, a 3D simulation was developed using **MuJoCo** with a live visual dashboard.
 
 ---
 
-### **15.1 Drone Model & Physics Parameters**
+### **14.1 Drone Model & Physics Parameters**
 
 The quadrotor is modeled as a 6-DOF rigid body with collision shapes representing the chassis, four arms, and rotors.
 
@@ -710,7 +681,7 @@ The quadrotor is modeled as a 6-DOF rigid body with collision shapes representin
 
 ---
 
-### **15.2 Obstacle Avoidance System**
+### **14.2 Obstacle Avoidance System**
 
 The drone is designed to detect obstacles and navigate around them while moving between waypoints.
 - **3-Step Detour Path:**
@@ -722,7 +693,7 @@ The drone is designed to detect obstacles and navigate around them while moving 
 
 ---
 
-### **15.3 Live Dashboard (HUD)**
+### **14.3 Live Dashboard (HUD)**
 
 The dashboard displays important information while the simulation runs.
 
@@ -735,7 +706,7 @@ The dashboard displays important information while the simulation runs.
 
 ---
 
-### **15.4 Trajectory & Visual Markers**
+### **14.4 Trajectory & Visual Markers**
 
 The simulation uses visual markers to represent the route, waypoints, obstacles, and actual drone movement.
 
@@ -750,7 +721,7 @@ The simulation uses visual markers to represent the route, waypoints, obstacles,
 
    ____
 
-8. ### 16.1 UAV Simulation & Physical Environment
+8. ### 15.1 UAV Simulation & Physical Environment
 
 The quadrotor is simulated using **ArduPilot SITL and Gazebo Harmonic**, with Python handling telemetry, trajectory planning, and mathematical calculations.
 
@@ -762,7 +733,7 @@ The quadrotor is simulated using **ArduPilot SITL and Gazebo Harmonic**, with Py
 
 ---
 
-### 16.2 Trajectory Planning & Obstacle Avoidance
+### 15.2 Trajectory Planning & Obstacle Avoidance
 
 The mission uses the **A* star search algorithm** to plan a path around obstacles represented on a Python planning map.
 
@@ -775,7 +746,7 @@ The mission uses the **A* star search algorithm** to plan a path around obstacle
 
 ---
 
-### 16.3 Sensor Noise Simulation
+### 15.3 Sensor Noise Simulation
 
 Gaussian noise is added to copies of the sensor readings to demonstrate measurement uncertainty.
 
@@ -787,7 +758,7 @@ Gaussian noise is added to copies of the sensor readings to demonstrate measurem
 
 ---
 
-### 16.4 Real-Time Telemetry & Control Dashboard
+### 15.4 Real-Time Telemetry & Control Dashboard
 
 The Python dashboard displays live telemetry and mathematical calculations during the simulation.
 
