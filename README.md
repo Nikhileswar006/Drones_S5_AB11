@@ -686,6 +686,60 @@ A live telemetry panel on the right side of the screen monitors the flight in re
 * **Actuator Telemetry:** Total motor thrust ($T$) in Newtons and control torques ($\tau_x, \tau_y, \tau_z$) in $\text{N}\cdot\text{m}$.
 * **Control States:** Internal backstepping error states ($z_1, z_2$) proving the controller remains stable throughout the flight.
 ---
+
+
+## **15. MuJoCo 3D Simulation Environment**
+
+To test the **quaternion backstepping attitude controller** on a realistic 6-DOF drone, a 3D simulation was built using the **MuJoCo ** with a live visual dashboard.
+
+---
+
+### **15.1 Drone Model & Physics Parameters**
+
+The quadrotor is modeled as a 6-DOF rigid body with real collision shapes (chassis, 4 arms, and rotors).
+
+| Parameter                     | Value                                                    | Description                        |
+| :---------------------------- | :------------------------------------------------------- | :--------------------------------- |
+| **Mass (`m`)**                | `1.0\text{ kg}`                                          | Total drone weight                 |
+| **Inertia (`J`)**             | `\text{diag}(0.10, 0.10, 0.12)\text{ kg}\cdot\text{m}^2` | Moment of inertia matrix           |
+| **Arm Length (`L`)**          | `0.85\text{ m}`                                          | Center to motor distance           |
+| **Physics Step (`\Delta t`)** | `0.002\text{ s}` (`500\text{ Hz}`)                       | High-speed physics simulation rate |                                  
+| **Gravity (`g`)**             | `9.81\text{ m/s}^2`                                      | Downward gravity                   |
+
+### **15.2 Obstacle Avoidance System**
+The drone automatically detects and flies around obstacles placed between waypoints:
+
+- **3-Step Detour Path:**     &#x20;
+  1. **Pre-Apex:** The drone  start changing direction before reaching an obstacle.
+  2. **Apex:** The drone passes around the obstacle while maintaining a planned safety clearance `2.2\text{ m}` to `2.8\text{ m}`
+  3. **Exit:** After clearing the obstacle, the drone returns to its original route.
+  If the drone comes within `1.5\text{ m}` of an obstacle, an automatic push-back force steers it away to prevent collision.
+---
+### **15.3 Live Dashboard (HUD)**
+
+The dashboard displays important information while the simulation runs:
+
+- **Flight Progress:** Time, current waypoint (WP1 `\to` WP2 `\to` WP3 `\to` Destination), and "Destination Reached" alert.
+- **Position Error & RMSE:** Distance between the drone and the target, plus overall tracking accuracy.
+- **Angles & Orientation:** Real-time Roll, Pitch, Yaw angles, and quaternion error.
+- **Control Commands:** Current thrust (`T`) in Newtons and torques `[\tau_x, \tau_y, \tau_z]` in `\text{N}\cdot\text{m}`.
+- **Obstacle Status:** Avoidance state (`CLEAR` or `AVOIDING`), nearest obstacle distance, and collision counter (`0 = Safe`).
+- **Camera Views:** Easy switching between **Flight Path**, **Chase (Follow)**, **Overview**, and **Top-Down** views.
+
+---
+
+### **15.4 Trajectory & Visual Markers**
+
+- **Waypoint Markers:**     &#x20;
+  - **Start (WP0):** Blue dot at `[0, 0, 1]\text{ m}`.
+  - **Waypoints (WP1, WP2, WP3):** Orange dots guiding the route.
+  - **Destination:** Green beacon at `[14, 12, 5]\text{ m}`.
+  - **Physical Obstacles:** Visible 3D shapes (cylinder pillar, box tower, sphere, tall pylon).
+- **Orange Dashed Line:** Original planned straight-line route.
+- **Green Dashed Line:** Temporary safe detour path around an obstacle.
+- **Solid Blue Line:** Actual flight path traveled by the drone.
+
+can you give this clearly and simple ok
 # Results
 
 The closed-loop simulation evaluates the attitude tracking and controller performance using quaternion error, angular velocity error, backstepping error, and control torque.
