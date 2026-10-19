@@ -508,8 +508,6 @@ To validate the theoretical quaternion backstepping controller on realistic 6-DO
 
 ### 13.1 Quadrotor Physical Modeling & Rigid-Body Dynamics
 
-The quadrotor is modeled in an "X" configuration with parameters matching Section V of the CACS 2024 paper:
-
 | Physical Parameter | Value | Description |
 |---|---:|---|
 | Total Mass ($m$) | $1.0\,\text{kg}$ | Quadrotor airframe & payload mass |
