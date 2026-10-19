@@ -496,7 +496,6 @@ Modeled as a rigid body with 4 rotors in an 'X' frame:
   * **Smooth Evasion Polynomial:** Uses a $C^2$-continuous bell-curve function:
     $$P(s) = 64 \cdot s^3 \cdot (1 - s)^3$$
   * **Safe Clearance:** Smoothly pushes the drone **$1.15\text{ m}$ to the side** at the midpoint, clearing the $0.45\text{ m}$ tower with a $>0.70\text{ m}$ safety margin.
-  * **Zero Jerk:** Smooth acceleration profile prevents motor saturation and shaking.
   * **Automatic Re-convergence:** Once past the obstacle, the drone merges **straight back onto the reference line**.
 * **Why This Approach:** Clearly proves active collision avoidance by showing the drone deviate from the straight mission line and return.
 ---
