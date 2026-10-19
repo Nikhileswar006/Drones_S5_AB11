@@ -496,7 +496,7 @@ q(0)
 [0.94628,\ -0.1541,\ 0.19051,\ -0.21098]^T
 ```
 
-Initial reference quaternion:
+reference quaternion:
 
 ```math
 q_{\mathrm{ref}}(0)
