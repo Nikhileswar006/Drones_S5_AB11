@@ -687,57 +687,67 @@ A live telemetry panel on the right side of the screen monitors the flight in re
 * **Control States:** Internal backstepping error states ($z_1, z_2$) proving the controller remains stable throughout the flight.
 ---
 
-
 ## **15. MuJoCo 3D Simulation Environment**
 
-To test the **quaternion backstepping attitude controller** on a realistic 6-DOF drone, a 3D simulation was built using the **MuJoCo ** with a live visual dashboard.
+To test the **quaternion backstepping attitude controller** on a realistic 6-DOF drone, a 3D simulation was developed using **MuJoCo** with a live visual dashboard.
 
 ---
 
 ### **15.1 Drone Model & Physics Parameters**
 
-The quadrotor is modeled as a 6-DOF rigid body with real collision shapes (chassis, 4 arms, and rotors).
+The quadrotor is modeled as a 6-DOF rigid body with collision shapes representing the chassis, four arms, and rotors.
 
-| Parameter                     | Value                                                    | Description                        |
-| :---------------------------- | :------------------------------------------------------- | :--------------------------------- |
-| **Mass (`m`)**                | `1.0\text{ kg}`                                          | Total drone weight                 |
-| **Inertia (`J`)**             | `\text{diag}(0.10, 0.10, 0.12)\text{ kg}\cdot\text{m}^2` | Moment of inertia matrix           |
-| **Arm Length (`L`)**          | `0.85\text{ m}`                                          | Center to motor distance           |
-| **Physics Step (`\Delta t`)** | `0.002\text{ s}` (`500\text{ Hz}`)                       | High-speed physics simulation rate |                                  
-| **Gravity (`g`)**             | `9.81\text{ m/s}^2`                                      | Downward gravity                   |
+| Parameter | Value | Description |
+| :--- | :--- | :--- |
+| **Mass (`m`)** | `1.0 kg` | Total drone mass |
+| **Inertia (`J`)** | `diag(0.10, 0.10, 0.12) kg·m²` | Moment of inertia matrix |
+| **Arm Length (`L`)** | `0.85 m` | Distance from the center to each motor |
+| **Physics Time Step (`Δt`)** | `0.002 s (500 Hz)` | Physics simulation timestep |
+| **Gravity (`g`)** | `9.81 m/s²` | Gravitational acceleration |
+
+---
 
 ### **15.2 Obstacle Avoidance System**
-The drone automatically detects and flies around obstacles placed between waypoints:
 
-- **3-Step Detour Path:**     &#x20;
-  1. **Pre-Apex:** The drone  start changing direction before reaching an obstacle.
-  2. **Apex:** The drone passes around the obstacle while maintaining a planned safety clearance `2.2\text{ m}` to `2.8\text{ m}`
-  3. **Exit:** After clearing the obstacle, the drone returns to its original route.
-  If the drone comes within `1.5\text{ m}` of an obstacle, an automatic push-back force steers it away to prevent collision.
+The drone is designed to detect obstacles and navigate around them while moving between waypoints.
+- **3-Step Detour Path:**
+  1. **Pre-Apex:** The drone begins changing direction before reaching an obstacle.
+  2. **Apex:** The drone moves around the obstacle while maintaining a planned safety clearance of `2.2 m` to `2.8 m`.
+  3. **Exit:** After clearing the obstacle, the drone returns toward its original route.
+
+- **Obstacle Repulsion:** When the drone comes within `1.5 m` of an obstacle, an automatic repulsion mechanism steers it away to reduce the risk of collision.
+
 ---
+
 ### **15.3 Live Dashboard (HUD)**
 
-The dashboard displays important information while the simulation runs:
+The dashboard displays important information while the simulation runs.
 
-- **Flight Progress:** Time, current waypoint (WP1 `\to` WP2 `\to` WP3 `\to` Destination), and "Destination Reached" alert.
-- **Position Error & RMSE:** Distance between the drone and the target, plus overall tracking accuracy.
-- **Angles & Orientation:** Real-time Roll, Pitch, Yaw angles, and quaternion error.
-- **Control Commands:** Current thrust (`T`) in Newtons and torques `[\tau_x, \tau_y, \tau_z]` in `\text{N}\cdot\text{m}`.
-- **Obstacle Status:** Avoidance state (`CLEAR` or `AVOIDING`), nearest obstacle distance, and collision counter (`0 = Safe`).
-- **Camera Views:** Easy switching between **Flight Path**, **Chase (Follow)**, **Overview**, and **Top-Down** views.
+- **Flight Progress:** Simulation time, current waypoint (WP1 → WP2 → WP3 → Destination), and a "Destination Reached" alert.
+- **Position Error & RMSE:** Distance between the drone and its target, along with overall position-tracking accuracy.
+- **Angles & Orientation:** Real-time roll, pitch, yaw angles, and quaternion error.
+- **Control Commands:** Total thrust (`T`) in newtons and control torques (`τx`, `τy`, `τz`) in `N·m`.
+- **Obstacle Status:** Avoidance state (`CLEAR` or `AVOIDING`), nearest obstacle distance, and collision counter.
+- **Camera Views:** Flight Path, Chase (Follow), Overview, and Top-Down views.
 
 ---
 
 ### **15.4 Trajectory & Visual Markers**
 
-- **Waypoint Markers:**     &#x20;
-  - **Start (WP0):** Blue dot at `[0, 0, 1]\text{ m}`.
-  - **Waypoints (WP1, WP2, WP3):** Orange dots guiding the route.
-  - **Destination:** Green beacon at `[14, 12, 5]\text{ m}`.
-  - **Physical Obstacles:** Visible 3D shapes (cylinder pillar, box tower, sphere, tall pylon).
-- **Orange Dashed Line:** Original planned straight-line route.
-- **Green Dashed Line:** Temporary safe detour path around an obstacle.
-- **Solid Blue Line:** Actual flight path traveled by the drone.
+The simulation uses visual markers to represent the route, waypoints, obstacles, and actual drone movement.
+
+### **Waypoint Markers**
+
+1. **Start (WP0):** Blue marker at `[0, 0, 1] m`.
+2. **Intermediate Waypoints (WP1, WP2, WP3):** Orange markers indicating intermediate targets.
+3. **Destination:** Green marker at `[14, 12, 5] m`.
+4. **Physical Obstacles:** 3D shapes representing a cylindrical pillar, box tower, sphere, and tall pylon.
+5. **Orange Dashed Line:** Represents the original planned route between waypoints.
+6. **Green Dashed Line:** Represents the temporary detour route around an obstacle.
+7. **Solid Blue Line:** Represents the actual flight path traveled by the drone.
+
+
+
 
 # Results
 
