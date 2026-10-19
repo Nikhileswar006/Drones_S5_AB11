@@ -502,7 +502,47 @@ q_{\mathrm{ref}}(0)
 ```
 
 ---
+## 13. PyBullet 3D Simulation Environment
 
+To validate the theoretical quaternion backstepping controller on realistic 6-DOF flight dynamics beyond ideal mathematical equations, a high-fidelity 3D simulation environment was developed using the **PyBullet physics engine**.
+
+### 13.1 Quadrotor Physical Modeling & Rigid-Body Dynamics
+
+The quadrotor is modeled in an "X" configuration with parameters matching Section V of the CACS 2024 paper:
+
+| Physical Parameter | Value | Description |
+|---|---:|---|
+| Total Mass ($m$) | $1.0\,\text{kg}$ | Quadrotor airframe & payload mass |
+| Inertia Matrix ($J$) | $\text{diag}(0.1,\ 0.1,\ 0.12)\,\text{kg}\cdot\text{m}^2$ | Principal moments of inertia |
+| Arm Length ($L$) | $0.22\,\text{m}$ | Motor center to center-of-gravity distance |
+| Physics Timestep ($\Delta t$) | $1/240\,\text{s}\ (4.167\,\text{ms})$ | High-frequency symplectic integrator step |
+| Gravitational Acceleration ($g$) | $9.81\,\text{m/s}^2$ | Earth standard gravity along $-\hat{\mathbf{z}}_W$ |
+
+The environment applies body-frame forces and torques:
+1. **Total Collective Thrust ($T$)**: Applied along the vehicle's body $Z$-axis ($\mathbf{z}_B$).
+2. **Control Torques ($\boldsymbol{\tau}$)**: Applied as three-axis body torques $[\tau_x,\ \tau_y,\ \tau_z]^T$ calculated directly by the quaternion backstepping controller.
+
+### 13.2 Real-Time Forward LiDAR Perception
+
+To simulate autonomous navigation in unmapped environments without prior obstacle coordinates:
+- An onboard virtual LiDAR scanner is mounted to the quadrotor frame.
+- It casts a fan of $15$ horizontal rays covering a $100^\circ$ Field-of-View (FOV) with a sensing range of $2.5\,\text{m}$ at $240\,\text{Hz}$ using PyBullet's native batch raycaster (`p.rayTestBatch`).
+- When an obstacle intersects the detection beam, the sensor measures the obstacle's relative distance $d$ and direction vector $\hat{\mathbf{n}}_{\text{obs}}$, injecting an Artificial Potential Field (APF) repulsive force into the outer-loop position controller.
+
+### 13.3 Real-Time Desktop Telemetry Dashboard (HUD)
+
+A dedicated, non-blocking desktop graphical HUD (built with Tkinter) runs alongside the 3D PyBullet viewport to display live state telemetry:
+- **Elapsed Time & Waypoint Target**: Current mission time and index of target waypoint.
+- **Tracking Errors**: 3D Euclidean position error $\lVert \mathbf{e}_p \rVert$ and axis breakdown $[e_x, e_y, e_z]$.
+- **Attitude States**: Actual vs. desired Euler angles (Roll, Pitch, Yaw in degrees) and quaternion error vector $q_{\text{err}}$.
+- **Actuator Outputs**: Total collective thrust ($T$) in Newtons and three-axis torques $[\tau_x, \tau_y, \tau_z]$ in $\text{N}\cdot\text{m}$.
+- **Sensor Perception Status**: Live radar alerts when obstacles are detected and active Gaussian sensor noise level ($\sigma$).
+
+### 13.4 Visual Flight Corridor & Trail Rendering
+
+- **3D Waypoint Markers**: Spherical beacons indicating start (green), intermediate guide waypoints (amber), and final destination (red).
+- **Smooth Trajectory Path**: Real-time 3D debug lines illustrating the analytical quintic reference path.
+- **Flight Trail**: A continuous cyan ribbon tracing the quadrotor's actual physical flight path to visually verify tracking accuracy and avoidance clearance.
 # Results
 
 The closed-loop simulation evaluates the attitude tracking and controller performance using quaternion error, angular velocity error, backstepping error, and control torque.
