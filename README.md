@@ -748,7 +748,57 @@ The simulation uses visual markers to represent the route, waypoints, obstacles,
 5. **Orange Dashed Line:** Represents the original planned route between waypoints.
 6. **Solid Blue Line:** Represents the actual flight path traveled by the drone.
 
+   ____
 
+8. ### 16.1 UAV Simulation & Physical Environment
+
+The quadrotor is simulated using **ArduPilot SITL and Gazebo Harmonic**, with Python handling telemetry, trajectory planning, and mathematical calculations.
+
+- **Simulation Platform:** ArduPilot SITL + Gazebo Harmonic.
+- **Communication:** MAVLink using pymavlink.
+- **Trajectory:** A → B → C → D → A.
+- **Attitude Representation:** Quaternion-based orientation.
+- **Flight Control:** ArduPilot manages the simulated drone's flight.
+
+---
+
+### 16.2 Trajectory Planning & Obstacle Avoidance
+
+The mission uses the **A* star search algorithm** to plan a path around obstacles represented on a Python planning map.
+
+- **Waypoint Navigation:** The drone follows four waypoints in sequence.
+- **Obstacle Representation:** Circular obstacles are defined using coordinates and radii.
+- **Safety Clearance:** A clearance distance is considered during path planning.
+- **Path Optimization:** A* searches the grid for a feasible route while avoiding blocked regions.
+
+*Note: Physical obstacle avoidance requires corresponding obstacles in Gazebo and suitable sensor-based detection.*
+
+---
+
+### 16.3 Sensor Noise Simulation
+
+Gaussian noise is added to copies of the sensor readings to demonstrate measurement uncertainty.
+
+- **Position Noise:** Standard deviation of `0.15 m`.
+- **Velocity Noise:** Standard deviation of `0.08 m/s`.
+- **Quaternion Noise:** Standard deviation of `0.025` per component.
+- **Noisy Measurements:** True and noisy readings are displayed for comparison.
+- **Noise Recovery:** Filtering and noise-recovery algorithms are not implemented.
+
+---
+
+### 16.4 Real-Time Telemetry & Control Dashboard
+
+The Python dashboard displays live telemetry and mathematical calculations during the simulation.
+
+- **Position & Velocity:** Current UAV position and velocity.
+- **Quaternion:** Orientation and quaternion components.
+- **Attitude Errors:** Quaternion error and angular-velocity error.
+- **Trajectory Visualization:** Current position, waypoints, and planned obstacle-avoiding path.
+- **Noise Comparison:** True sensor readings, generated noise, and noisy measurements.
+
+
+_____
 
 
 # Results
