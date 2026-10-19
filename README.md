@@ -436,7 +436,7 @@ The control law therefore works to reduce the backstepping error while compensat
 
 ## 11. Reference Trajectory
 
-The reference angular velocity consists of three sinusoidal signals.
+The reference angular velocity consists of three signals.
 
 It is represented as:
 
