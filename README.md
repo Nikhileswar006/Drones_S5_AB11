@@ -269,7 +269,7 @@ where $\omega_{\mathrm{err},d}$ is the desired angular velocity error generated 
 
 ---
 
-## 8. Virtual Control
+## 8. Desired angularvelocity error
 
 The virtual control is defined by:
 
