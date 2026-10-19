@@ -739,7 +739,6 @@ The dashboard displays important information while the simulation runs:
 - **Green Dashed Line:** Temporary safe detour path around an obstacle.
 - **Solid Blue Line:** Actual flight path traveled by the drone.
 
-can you give this clearly and simple ok
 # Results
 
 The closed-loop simulation evaluates the attitude tracking and controller performance using quaternion error, angular velocity error, backstepping error, and control torque.
