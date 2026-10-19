@@ -321,6 +321,18 @@ The backstepping error is:
 -
 \omega_{\mathrm{err},d}
 ```
+The quaternion error dynamics are:
+
+```math
+\begin{aligned}
+\dot q_{\mathrm{err}}
+&= -\frac{k_1}{2}(q_{\mathrm{err}}-q_i)
++ \frac{1}{2}q_{\mathrm{err}}\otimes
+\begin{bmatrix}0\\\delta\end{bmatrix}
+\end{aligned}
+```
+
+
 
 Differentiating gives:
 
