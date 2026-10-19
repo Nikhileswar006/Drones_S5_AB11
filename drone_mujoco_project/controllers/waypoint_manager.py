@@ -1,37 +1,68 @@
+
 import numpy as np
 from typing import List, Tuple, Dict, Any
 
+
 class WaypointManager:
     """
-    Manages sequential 3D waypoints for UAV trajectory navigation.
-    The drone tracks one active target at a time:
-        Start -> WP1 -> WP2 -> WP3 -> Final Goal
+    Sequential 3D waypoint manager for UAV navigation.
+
+    Features:
+    - Distance-based switching for intermediate waypoints
+    - Passed-waypoint detection with cross-track corridor checking
+    - Strict distance-based final destination detection
+    - Waypoint transition history
+    - Safe handling after mission completion
     """
-    def __init__(self, waypoints: List[List[float]], tolerance: float = 0.20, final_tolerance: float = 0.10):
-        """
-        Args:
-            waypoints: Ordered list of 3D waypoint coordinates [[x, y, z], ...]
-            tolerance: Distance threshold in meters to consider an intermediate waypoint reached
-            final_tolerance: Distance threshold in meters for the final destination
-        """
-        self.waypoints = [np.array(wp, dtype=float) for wp in waypoints]
+
+    def __init__(
+        self,
+        waypoints: List[List[float]],
+        tolerance: float = 0.50,
+        final_tolerance: float = 0.10,
+        corridor_width: float = 1.0,
+    ):
+        if not waypoints:
+            raise ValueError("At least one waypoint is required.")
+
+        self.waypoints = [
+            np.asarray(wp, dtype=float) for wp in waypoints
+        ]
+
+        if any(wp.shape != (3,) for wp in self.waypoints):
+            raise ValueError(
+                "Every waypoint must contain exactly [x, y, z]."
+            )
+
+        if tolerance <= 0:
+            raise ValueError("tolerance must be positive.")
+
+        if final_tolerance <= 0:
+            raise ValueError("final_tolerance must be positive.")
+
+        if corridor_width <= 0:
+            raise ValueError("corridor_width must be positive.")
+
         self.num_waypoints = len(self.waypoints)
-        self.tolerance = tolerance
-        self.final_tolerance = final_tolerance
+        self.tolerance = float(tolerance)
+        self.final_tolerance = float(final_tolerance)
+        self.corridor_width = float(corridor_width)
+
         self.current_idx = 0
         self.is_completed = False
-        self.switch_history = [] # Records (timestamp, waypoint_index, waypoint_coords)
+        self.switch_history: List[Dict[str, Any]] = []
 
     @property
     def current_target(self) -> np.ndarray:
-        """Returns the currently active 3D target coordinate."""
-        return self.waypoints[self.current_idx]
+        """Return a copy of the active target."""
+        return self.waypoints[self.current_idx].copy()
 
     @property
     def current_name(self) -> str:
-        """Returns the human-readable label of the current target."""
+        """Return the active waypoint label."""
         if self.current_idx == self.num_waypoints - 1:
             return "Destination"
+
         return f"WP{self.current_idx + 1}"
 
     def get_current_target(self) -> np.ndarray:
@@ -41,56 +72,163 @@ class WaypointManager:
         return self.current_name
 
     def reset(self):
-        """Resets the manager state back to the first waypoint."""
+        """Reset the manager before a new simulation run."""
         self.current_idx = 0
         self.is_completed = False
         self.switch_history.clear()
 
-    def update(self, current_pos: np.ndarray, current_time: float) -> Tuple[np.ndarray, float, bool, bool]:
+    def _has_passed_waypoint(
+        self,
+        current_pos: np.ndarray,
+    ) -> bool:
         """
-        Updates the waypoint tracking based on current drone position.
-        
-        Args:
-            current_pos: [x, y, z] of the UAV
-            current_time: Current simulation timestamp in seconds
-            
+        Detect whether the drone has passed the active intermediate
+        waypoint while remaining close to the previous-to-current
+        waypoint segment.
+        """
+        if self.current_idx <= 0:
+            return False
+
+        previous_wp = self.waypoints[self.current_idx - 1]
+        target_wp = self.waypoints[self.current_idx]
+
+        segment = target_wp - previous_wp
+        segment_length_sq = float(np.dot(segment, segment))
+
+        # Avoid division by zero for duplicate waypoints.
+        if segment_length_sq < 1e-9:
+            return False
+
+        relative_pos = current_pos - previous_wp
+
+        # Projection along the previous-to-target segment.
+        progress = float(np.dot(relative_pos, segment))
+
+        # The drone must be beyond the target plane.
+        if progress < segment_length_sq:
+            return False
+
+        # Calculate distance from the drone to the segment's line.
+        projection = (
+            previous_wp
+            + (progress / segment_length_sq) * segment
+        )
+
+        cross_track_error = float(
+            np.linalg.norm(current_pos - projection)
+        )
+
+        return cross_track_error <= self.corridor_width
+
+    def _record_transition(
+        self,
+        current_time: float,
+        name: str,
+        position: np.ndarray,
+        distance: float,
+    ):
+        self.switch_history.append({
+            "time": float(current_time),
+            "idx": self.current_idx,
+            "name": name,
+            "pos": position.copy(),
+            "distance": float(distance),
+        })
+
+    def update(
+        self,
+        current_pos: np.ndarray,
+        current_time: float,
+    ) -> Tuple[np.ndarray, float, bool, bool]:
+        """
+        Update the active waypoint.
+
         Returns:
-            active_target (np.ndarray): The 3D coordinate to track
-            dist_to_target (float): Current Euclidean distance to active target
-            switched (bool): True if a waypoint was just reached and switched on this step
-            all_reached (bool): True if the final destination has been reached
+            target       : Active target position (3D)
+            distance     : Distance from drone to returned target
+            switched     : True if an intermediate waypoint changed
+            all_reached  : True if final destination was reached
         """
-        target = self.current_target
-        dist_to_target = float(np.linalg.norm(target - current_pos))
+        current_pos = np.asarray(current_pos, dtype=float)
+
+        if current_pos.shape != (3,):
+            raise ValueError(
+                "current_pos must contain exactly [x, y, z]."
+            )
+
+        if not np.all(np.isfinite(current_pos)):
+            raise ValueError("current_pos must contain finite values.")
+
         switched = False
 
-        # Determine applicable tolerance
-        active_tol = self.final_tolerance if (self.current_idx == self.num_waypoints - 1) else self.tolerance
+        # Once complete, do not switch targets again.
+        if self.is_completed:
+            target = self.current_target
+            distance = float(np.linalg.norm(target - current_pos))
+            return target, distance, False, True
 
-        if dist_to_target < active_tol:
-            if self.current_idx < self.num_waypoints - 1:
-                # Log transition
-                prev_name = self.current_name
-                self.switch_history.append({
-                    'time': current_time,
-                    'idx': self.current_idx,
-                    'name': prev_name,
-                    'pos': target.copy()
-                })
-                self.current_idx += 1
-                switched = True
-                target = self.current_target
-                dist_to_target = float(np.linalg.norm(target - current_pos))
-                print(f" [Waypoint] Reached {prev_name} at t={current_time:.2f}s! Switching to target {self.current_name}: {target}")
-            else:
-                if not self.is_completed:
-                    self.is_completed = True
-                    self.switch_history.append({
-                        'time': current_time,
-                        'idx': self.current_idx,
-                        'name': "Destination Goal",
-                        'pos': target.copy()
-                    })
-                    print(f" [Waypoint] Final Destination Goal reached at t={current_time:.2f}s with error {dist_to_target:.3f}m!")
+        target = self.current_target
+        distance = float(np.linalg.norm(target - current_pos))
 
-        return target, dist_to_target, switched, self.is_completed
+        is_final = self.current_idx == self.num_waypoints - 1
+
+        if is_final:
+            # Never use passed-waypoint detection for the destination.
+            if distance <= self.final_tolerance:
+                self._record_transition(
+                    current_time,
+                    "Destination",
+                    target,
+                    distance,
+                )
+                self.is_completed = True
+
+                print(
+                    f"[Waypoint] Destination reached at "
+                    f"t={current_time:.2f}s; "
+                    f"error={distance:.3f} m"
+                )
+
+            return (
+                self.current_target,
+                distance,
+                False,
+                self.is_completed,
+            )
+
+        # Check whether the active intermediate waypoint was reached.
+        reached = distance <= self.tolerance
+        passed = False if reached else self._has_passed_waypoint(
+            current_pos
+        )
+
+        if reached or passed:
+            previous_name = self.current_name
+
+            self._record_transition(
+                current_time,
+                previous_name,
+                target,
+                distance,
+            )
+
+            self.current_idx += 1
+            switched = True
+
+            reason = (
+                "within tolerance"
+                if reached
+                else "passed within corridor"
+            )
+
+            print(
+                f"[Waypoint] {previous_name} reached by {reason} "
+                f"at t={current_time:.2f}s. "
+                f"Next target: {self.current_name}"
+            )
+
+        # Return the active target AFTER a possible switch.
+        target = self.current_target
+        distance = float(np.linalg.norm(target - current_pos))
+
+        return target, distance, switched, self.is_completed

@@ -80,13 +80,13 @@ class ObstacleAvoidancePlanner:
                 'id': 'Obs4_Pylon',
                 'label': 'Tall Pylon',
                 'type': 'cylinder',
-                'pos': np.array([12.0, 8.0, 1.40]),
-                'radius': 0.18,
-                'half_height': 1.40,
+                'pos': np.array([12.0, 8.0, 2.25]),
+                'radius': 0.22,
+                'half_height': 2.25,
                 'z_min': 0.0,
-                'z_max': 2.80,
-                'preferred_bypass': np.array([0.894, -0.447, 0.0]),  # Right bypass toward open space
-                'r_eff': 1.65,
+                'z_max': 4.50,
+                'preferred_bypass': np.array([0.894, -0.447, 0.0]),  # Perpendicular right bypass away from path
+                'r_eff': 2.80,  # Widened safety bypass corridor around Obs4
                 'segment_idx': 3  # WP3 -> Destination
             }
         ]
@@ -206,17 +206,26 @@ class ObstacleAvoidancePlanner:
 
         # ── Stage 0: Pre-Apex ────────────────────────────────────────────────
         # Located before the obstacle (negative path direction) and to bypass side.
-        # The path from current_pos → pre_apex swings wide enough to clear the obstacle.
+        # For Obs4, pull further back along the path so the drone begins steering clear early.
         pre_apex = c.copy()
-        pre_apex[:2] += bypass_u[:2] * R_eff * 0.85 - path_norm[:2] * R_eff * 0.50
+        if obs['id'] == 'Obs4_Pylon':
+            pre_apex[:2] += bypass_u[:2] * R_eff * 1.10 - path_norm[:2] * R_eff * 1.00
+        else:
+            pre_apex[:2] += bypass_u[:2] * R_eff * 0.85 - path_norm[:2] * R_eff * 0.50
 
         # ── Stage 1: Apex ────────────────────────────────────────────────────
         apex_wp = c.copy()
-        apex_wp[:2] += bypass_u[:2] * R_eff * 0.90
+        if obs['id'] == 'Obs4_Pylon':
+            apex_wp[:2] += bypass_u[:2] * R_eff * 1.15
+        else:
+            apex_wp[:2] += bypass_u[:2] * R_eff * 0.90
 
         # ── Stage 2: Exit ────────────────────────────────────────────────────
         exit_wp = c.copy()
-        exit_wp[:2] += bypass_u[:2] * R_eff * 0.25 + path_norm[:2] * R_eff * 1.20
+        if obs['id'] == 'Obs4_Pylon':
+            exit_wp[:2] += bypass_u[:2] * R_eff * 0.40 + path_norm[:2] * R_eff * 1.10
+        else:
+            exit_wp[:2] += bypass_u[:2] * R_eff * 0.25 + path_norm[:2] * R_eff * 1.20
 
         # ── Altitude profiles per obstacle ───────────────────────────────────
         if obs['id'] == 'Obs1_Pillar':
@@ -232,9 +241,9 @@ class ObstacleAvoidancePlanner:
             apex_wp[2]  = 4.10
             exit_wp[2]  = 4.00
         elif obs['id'] == 'Obs4_Pylon':
-            pre_apex[2] = 3.80
-            apex_wp[2]  = 4.20
-            exit_wp[2]  = 4.70
+            pre_apex[2] = 4.80
+            apex_wp[2]  = 5.20
+            exit_wp[2]  = 5.10
 
         # ── Safety clamp: if pre_apex is behind current position, start lateral ──
         # movement immediately at the drone's current XY location.
@@ -292,10 +301,23 @@ class ObstacleAvoidancePlanner:
             # s < 0  → obstacle is ahead of drone; s > 0 → obstacle is behind drone
             s_proj = float(np.dot(current_pos - c, path_dir))
 
+            # ── Altitude safety check ──────────────────────────────────────────
+            # If the drone is flying above the obstacle's top with enough vertical
+            # clearance, skip avoidance — the drone already clears it.
+            # Use 0.5m vertical buffer (drone vertical extent is small, unlike
+            # the lateral drone_radius which accounts for rotor span).
+            vertical_safe_margin = 0.5
+            obs_z_max = segment_obs.get('z_max', c[2] + segment_obs.get('radius', 0.5))
+            altitude_clearance = current_pos[2] - obs_z_max
+            drone_clears_vertically = altitude_clearance > vertical_safe_margin
+
             # ── State Machine Transitions ──────────────────────────────────────
             if self.state == "CLEAR":
-                # Trigger avoidance when approaching obstacle within detection horizon
-                if s_proj < 0.1 and dist_to_obs < self.detect_dist:
+                # Trigger avoidance ONLY when:
+                # 1. Obstacle is ahead (s_proj < 0.1)
+                # 2. Surface distance is within detection range (not center distance)
+                # 3. Drone does NOT already clear the obstacle vertically
+                if s_proj < 0.1 and s_dist < self.detect_dist and not drone_clears_vertically:
                     self.state = "AVOIDING"
                     self.active_obstacle = segment_obs
                     self.detour_points = self.generate_detour_waypoints(
@@ -331,8 +353,10 @@ class ObstacleAvoidancePlanner:
                     apex_wp = self.detour_points[1]
                     dist_to_apex = float(np.linalg.norm(apex_wp - current_pos))
 
-                    # Advance to exit as soon as drone has passed the obstacle plane or nears apex
-                    if s_proj > -0.10 or dist_to_apex < 0.85:
+                    # Advance to exit once apex is reached or drone is abreast of obstacle and has diverted laterally
+                    lateral_dist = float(np.linalg.norm(current_pos[:2] - segment_obs['pos'][:2]))
+                    apex_cleared = (dist_to_apex < 0.95) or (s_proj > 0.15 and lateral_dist > self.min_safe_dist + 0.3)
+                    if apex_cleared:
                         self.detour_sub_idx = 2
                         self.current_detour_wp = self.detour_points[2]
                         print(f" [Avoidance] Apex cleared, heading to exit waypoint: "
@@ -343,7 +367,8 @@ class ObstacleAvoidancePlanner:
                     exit_wp = self.detour_points[2]
                     dist_to_exit = float(np.linalg.norm(exit_wp - current_pos))
 
-                    if s_proj > 0.45 or dist_to_exit < 0.85:
+                    # Must fully clear past the obstacle before resuming nominal flight
+                    if s_proj > 0.80 or dist_to_exit < 0.95:
                         self.state = "RESUMING"
                         self.last_switch_time = current_time
                         print(f" [Avoidance] Safely cleared {segment_obs['label']}. "
@@ -351,7 +376,7 @@ class ObstacleAvoidancePlanner:
 
             elif self.state == "RESUMING":
                 # Mark as cleared so it never pulls the UAV backward
-                if s_proj > 0.60 or s_dist > self.min_safe_dist + 0.15:
+                if s_proj > 1.0 or s_dist > self.min_safe_dist + 0.5:
                     self.cleared_obstacles.add(segment_obs['id'])
                     self.state = "CLEAR"
                     self.active_obstacle = None

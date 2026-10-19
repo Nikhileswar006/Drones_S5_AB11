@@ -3,7 +3,6 @@ from typing import Tuple
 from controllers.quaternion import quaternion_error
 
 class BacksteppingController:
-  
     def __init__(self, J: np.ndarray = np.diag([0.1, 0.1, 0.12]), k1: float = 20.0, k2: float = 2.0):
         self.J = J
         self.J_inv = np.linalg.inv(J)
@@ -44,5 +43,16 @@ class BacksteppingController:
         
         # Step 19: Total Torque tau = tau1 + tau2
         tau = tau1 + tau2
+        
+        # Store internal telemetry for verification and inspection
+        self.last_telemetry = {
+            'q_err': q_err.copy(),
+            'w_err': w_err.copy(),
+            'delta': delta.copy(),
+            'tau1': tau1.copy(),
+            'tau2': tau2.copy(),
+            'tau': tau.copy(),
+            'gyroscopic': gyroscopic.copy()
+        }
         
         return tau, q_err, w_err, delta

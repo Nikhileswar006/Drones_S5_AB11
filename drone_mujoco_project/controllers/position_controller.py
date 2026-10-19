@@ -17,31 +17,40 @@ class PositionController:
                 is_final_target: bool = False) -> Tuple[float, np.ndarray, np.ndarray, np.ndarray]:
         # Step 26: Destination error e_p = P_d - P
         e_p = target_pos - current_pos
-        dist = float(np.linalg.norm(e_p))
         
         # Velocity damping error e_v = -V
         e_v = -current_vel
+        
+        # Use base gains by default (unchanged for intermediate waypoints)
+        Kp_use = self.Kp
+        Kv_use = self.Kv
 
-        # --- Proximity-based braking near target to prevent overshoot ---
-        # When within the braking zone, ramp down position gain and ramp up
-        # velocity damping so the drone decelerates smoothly.
-        brake_radius = 2.0  # Start braking at 2m from target
-        Kp_eff = self.Kp.copy()
-        Kv_eff = self.Kv.copy()
-
-        if dist < brake_radius:
-            # Linear ramp: at dist==brake_radius → factor=1, at dist==0 → factor=0.15
-            ramp = max(0.15, dist / brake_radius)
-            Kp_eff = self.Kp * ramp
-            # Boost damping inversely: stronger braking closer to target
-            Kv_eff = self.Kv * (1.0 + 2.5 * (1.0 - ramp))
-
-        # For final destination, apply even stronger braking
-        if is_final_target and dist < brake_radius:
-            Kv_eff = Kv_eff * 1.5  # Extra damping at destination
+        # --- Final destination braking only ---
+        # Apply deceleration ONLY when approaching the final destination
+        # to prevent the overshoot / long looping blue trail.
+        # Intermediate waypoints fly through with full gains for smooth flight.
+        if is_final_target:
+            dist = float(np.linalg.norm(e_p))
+            brake_radius = 4.0  # Start braking 4m before destination
+            if dist < brake_radius:
+                norm_d = dist / brake_radius
+                # Ramp: Kp scales from 100% at 4m down to 35% at 0m for soft docking
+                ramp = 0.35 + 0.65 * norm_d
+                Kp_use = self.Kp * ramp
+                # Damping boost: Kv scales up to 3.5x at destination to kill residual momentum
+                Kv_use = self.Kv * (1.0 + 2.5 * (1.0 - norm_d))
 
         # Step 27: Acceleration command a_cmd = Kp * e_p + Kv * e_v
-        a_cmd = Kp_eff * e_p + Kv_eff * e_v
+        # Position error and velocity damping
+        a_cmd = Kp_use * e_p - Kv_use * current_vel
+
+        # Near final destination, limit maximum tilt/speed to ensure a crisp, straight stop
+        if is_final_target:
+            dist = float(np.linalg.norm(e_p))
+            if dist < 2.5:
+                max_tilt_acc = max(1.2, 4.5 * (dist / 2.5))
+                a_cmd[0] = np.clip(a_cmd[0], -max_tilt_acc, max_tilt_acc)
+                a_cmd[1] = np.clip(a_cmd[1], -max_tilt_acc, max_tilt_acc)
         
         # Smooth physical tilt limits (+- 4.5 m/s^2 corresponds to ~25 deg tilt)
         a_cmd[0] = np.clip(a_cmd[0], -4.5, 4.5)
