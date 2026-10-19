@@ -743,8 +743,7 @@ The simulation uses visual markers to represent the route, waypoints, obstacles,
 3. **Destination:** Green marker at `[14, 12, 5] m`.
 4. **Physical Obstacles:** 3D shapes representing a cylindrical pillar, box tower, sphere, and tall pylon.
 5. **Orange Dashed Line:** Represents the original planned route between waypoints.
-6. **Green Dashed Line:** Represents the temporary detour route around an obstacle.
-7. **Solid Blue Line:** Represents the actual flight path traveled by the drone.
+6. **Solid Blue Line:** Represents the actual flight path traveled by the drone.
 
 
 
