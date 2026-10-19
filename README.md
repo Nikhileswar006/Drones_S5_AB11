@@ -506,6 +506,7 @@ q_{\mathrm{ref}}(0)
 
 To validate the theoretical quaternion backstepping controller on realistic 6-DOF flight dynamics beyond ideal mathematical equations, a high-fidelity 3D simulation environment was developed using the **PyBullet physics engine**.
 
+
 ### 13.1 Quadrotor Physical Modeling & Rigid-Body Dynamics
 
 | Physical Parameter | Value | Description |
@@ -517,31 +518,119 @@ To validate the theoretical quaternion backstepping controller on realistic 6-DO
 | Gravitational Acceleration ($g$) | $9.81\,\text{m/s}^2$ | Earth standard gravity along $-\hat{\mathbf{z}}_W$ |
 
 The environment applies body-frame forces and torques:
+
 1. **Total Collective Thrust ($T$)**: Applied along the vehicle's body $Z$-axis ($\mathbf{z}_B$).
 2. **Control Torques ($\boldsymbol{\tau}$)**: Applied as three-axis body torques $[\tau_x,\ \tau_y,\ \tau_z]^T$ calculated directly by the quaternion backstepping controller.
 
-### 13.2 Real-Time Forward LiDAR Perception
-
-To simulate autonomous navigation in unmapped environments without prior obstacle coordinates:
-- An onboard virtual LiDAR scanner is mounted to the quadrotor frame.
-- It casts a fan of $15$ horizontal rays covering a $100^\circ$ Field-of-View (FOV) with a sensing range of $2.5\,\text{m}$ at $240\,\text{Hz}$ using PyBullet's native batch raycaster (`p.rayTestBatch`).
-- When an obstacle intersects the detection beam, the sensor measures the obstacle's relative distance $d$ and direction vector $\hat{\mathbf{n}}_{\text{obs}}$, injecting an Artificial Potential Field (APF) repulsive force into the outer-loop position controller.
-
-### 13.3 Real-Time Desktop Telemetry Dashboard (HUD)
-
-A dedicated, non-blocking desktop graphical HUD (built with Tkinter) runs alongside the 3D PyBullet viewport to display live state telemetry:
-- **Elapsed Time & Waypoint Target**: Current mission time and index of target waypoint.
-- **Tracking Errors**: 3D Euclidean position error $\lVert \mathbf{e}_p \rVert$ and axis breakdown $[e_x, e_y, e_z]$.
-- **Attitude States**: Actual vs. desired Euler angles (Roll, Pitch, Yaw in degrees) and quaternion error vector $q_{\text{err}}$.
-- **Actuator Outputs**: Total collective thrust ($T$) in Newtons and three-axis torques $[\tau_x, \tau_y, \tau_z]$ in $\text{N}\cdot\text{m}$.
-- **Sensor Perception Status**: Live radar alerts when obstacles are detected and active Gaussian sensor noise level ($\sigma$).
-
-### 13.4 Visual Flight Corridor & Trail Rendering
-
-- **3D Waypoint Markers**: Spherical beacons indicating start (green), intermediate guide waypoints (amber), and final destination (red).
-- **Smooth Trajectory Path**: Real-time 3D debug lines illustrating the analytical quintic reference path.
-- **Flight Trail**: A continuous cyan ribbon tracing the quadrotor's actual physical flight path to visually verify tracking accuracy and avoidance clearance.
 ---
+
+### 13.2 Cascaded 3D Position Control & Trajectory Planning
+
+#### 13.2.1 Outer-Loop SE(3) Position Controller
+The desired acceleration is computed using the following equation:
+
+$$\begin{aligned} \mathbf{a}_{\text{des}} &= \mathbf{a}_d + \mathbf{K}_p(\mathbf{p}_d - \mathbf{p}) + \mathbf{K}_d(\mathbf{v}_d - \mathbf{v}) \\ &\quad + \mathbf{K}_i \int (\mathbf{p}_d - \mathbf{p})\,dt \\ &\quad + \mathbf{f}_{\text{rep}} + g\hat{\mathbf{z}}_{W} \end{aligned}$$
+
+**Where:**
+- $\mathbf{p}_d, \mathbf{p}$: Desired and actual positions.
+- $\mathbf{v}_d, \mathbf{v}$: Desired and actual velocities.
+- $\mathbf{a}_d$: Desired acceleration feedforward.
+- $\mathbf{K}_p, \mathbf{K}_d, \mathbf{K}_i$: PID controller gains.
+- $\mathbf{f}_{\text{rep}}$: Obstacle avoidance force.
+- $g$: Gravitational acceleration ($9.81\ \text{m/s}^2$).
+- $\hat{\mathbf{z}}_W$: World-frame vertical unit vector, $[0,0,1]^T$.
+
+#### 13.2.2 Thrust and Attitude Extraction
+The desired body-frame $z$-axis is calculated as:
+
+$$\mathbf{z}_{B,\text{des}} = \frac{\mathbf{a}_{\text{des}}}{\Vert{}\mathbf{a}_{\text{des}}\Vert{}}$$
+
+The collective thrust is computed as:
+
+$$T = m(\mathbf{a}_{\text{des}} \cdot \mathbf{z}_B)$$
+
+The resulting reference quaternion, $\mathbf{q}_{\text{ref}}$, and collective thrust, $T$, are supplied to the inner-loop attitude controller.
+
+#### 13.2.3 Quintic Polynomial Trajectory Generation
+A fifth-order polynomial trajectory generator provides:
+- $C^2$-continuous motion profiles.
+- Smooth position, velocity, and acceleration profiles.
+- Rest-to-rest waypoint transitions.
+- Smooth trajectory stitching between consecutive waypoints.
+
+#### 13.2.4 Altitude Protection and Tilt Limiting
+
+| Safety Constraint | Value |
+|---|---|
+| Minimum vertical acceleration | $a_z \geq 3.0\ \text{m/s}^2$ |
+| Maximum tilt angle | $\theta_{\max} = 45^\circ$ |
+
+---
+
+### 13.3 Real-Time Forward LiDAR Perception & Obstacle Avoidance
+
+#### 13.3.1 Onboard Virtual LiDAR
+To simulate autonomous navigation in unmapped environments without prior obstacle coordinates:
+- An onboard virtual LiDAR scanner is mounted to the quadrotor frame using PyBullet ray casting (`p.rayTestBatch`).
+- The sensor scans the forward flight direction to detect obstacles in the quadrotor's path.
+
+| Parameter | Value |
+|---|---:|
+| Horizontal rays | 15 |
+| Field of View (FOV) | $100^\circ$ |
+| Maximum range | 2.5 m |
+| Target update rate | 240 Hz |
+
+#### 13.3.2 Reactive Artificial Potential Field (APF)
+When an obstacle intersects the detection beam, the sensor measures the obstacle's relative distance $d$ and evasion direction vector $\hat{\mathbf{n}}_{\text{evade}}$, injecting a repulsive force into the outer-loop position controller:
+
+$$\mathbf{f}_{\text{rep}} = k_{\text{rep}} \frac{d_{\text{safe}}-d}{d+\epsilon} \hat{\mathbf{n}}_{\text{evade}}$$
+
+**Where:**
+- $k_{\text{rep}}$: Repulsion gain.
+- $d_{\text{safe}}$: Required safety distance.
+- $d$: Measured distance to the obstacle.
+- $\epsilon$: Small numerical protection constant.
+- $\hat{\mathbf{n}}_{\text{evade}}$: Unit vector indicating the avoidance direction.
+
+#### 13.3.3 Dynamic Pop-Up Obstacle Replanning
+When an unmapped obstacle appears during flight:
+1. Detect the obstacle using the virtual LiDAR.
+2. Compute a suitable avoidance direction.
+3. Update the trajectory boundary conditions.
+4. Regenerate a smooth trajectory around the obstacle ($C^1$ or $C^2$ continuity).
+5. Continue tracking the updated path.
+
+---
+
+### 13.4 Telemetry, Visualizations & Data Logging
+
+#### 13.4.1 Real-Time Desktop Telemetry Dashboard (HUD)
+A dedicated, non-blocking desktop graphical HUD (built with Tkinter) runs alongside the 3D PyBullet viewport to display live state telemetry:
+- **Mission Progress**: Elapsed simulation time and active target waypoint index.
+- **Tracking Errors**: 3D Euclidean position error $\lVert \mathbf{e}_p \rVert$ and axis breakdown $[e_x, e_y, e_z]$.
+- **Attitude States**: Actual vs. desired Euler angles (Roll, Pitch, Yaw) and quaternion error vector $\mathbf{q}_{\text{err}}$.
+- **Actuator Outputs**: Total collective thrust ($T$) in Newtons and body torques $[\tau_x, \tau_y, \tau_z]$ in $\text{N}\cdot\text{m}$.
+- **Perception Status**: Live radar alerts upon obstacle detection and active Gaussian sensor noise level ($\sigma$).
+
+#### 13.4.2 Flight Corridor & Trail Rendering
+- **3D Waypoint Markers**: Spherical beacons indicating start (green), intermediate guides (amber), and destination (red).
+- **Trajectory Path**: Real-time 3D debug lines showing the analytical quintic reference path.
+- **Flight Trail**: A continuous cyan ribbon tracing actual physical flight path to visually verify tracking accuracy and avoidance clearance.
+
+#### 13.4.3 Automatic Simulation Outputs
+
+| Output File | Description |
+|---|---|
+| `uav_3d_flight_trajectory.png` | 3D flight trajectory and spatial tracking performance. |
+| `uav_paper_metrics_reproduction.png` | Telemetry plots reproducing the paper's benchmark evaluation metrics. |
+| `flight_coordinates.csv` | Timestamped reference vs. actual flight coordinates. |
+
+---
+
+### 13.5 Standalone Benchmark Execution
+
+The standalone benchmark evaluates the quaternion-based attitude controller independently of the outer-loop position controller. This isolates and validates the attitude controller's tracking performance, convergence rates, and stability limits without interference from external trajectory planning or obstacle avoidance modules.
 ## 14. UAV 3D Simulation & Control Environment
 
 To test our **Quaternion-Based Backstepping Controller** on realistic 6-DOF (Degrees-of-Freedom) flight dynamics, we developed a full physics-based simulation and an interactive 3D WebGL environment. It simulates real flight conditions—including wind disturbances and obstacle avoidance.
