@@ -485,7 +485,7 @@ Initial reference angular velocity:
 ```math
 \omega_{\mathrm{ref}}(0)
 =
-[-0.1,\ -0.2,\ 0.2]^T
+[-0.22,\ -0.7,\ 0.3]^T
 ```
 
 Initial quaternion:
