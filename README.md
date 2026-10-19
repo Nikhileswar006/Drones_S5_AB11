@@ -541,6 +541,69 @@ A dedicated, non-blocking desktop graphical HUD (built with Tkinter) runs alongs
 - **3D Waypoint Markers**: Spherical beacons indicating start (green), intermediate guide waypoints (amber), and final destination (red).
 - **Smooth Trajectory Path**: Real-time 3D debug lines illustrating the analytical quintic reference path.
 - **Flight Trail**: A continuous cyan ribbon tracing the quadrotor's actual physical flight path to visually verify tracking accuracy and avoidance clearance.
+---
+## 14. UAV 3D Simulation & Control Environment
+
+To test our **Quaternion-Based Backstepping Controller** on realistic 6-DOF (Degrees-of-Freedom) flight dynamics, we developed a full physics-based simulation and an interactive 3D WebGL environment. It simulates real flight conditions—including wind disturbances, obstacle avoidance, and live flight telemetry.
+
+---
+
+### 14.1 Quadrotor Physical Modeling & Dynamics
+
+The quadrotor is modeled as a rigid body with four rotors configured in an 'X' frame:
+
+| Physical Parameter | Value | Description |
+| :--- | :--- | :--- |
+| **Total Mass ($m$)** | `1.2 kg` | Drone frame, battery, and avionics |
+| **Inertia Matrix ($J$)** | `diag(0.1, 0.1, 0.12) kg·m²` | Rotational resistance along X, Y, and Z |
+| **Arm Length ($L$)** | `0.225 m` (22.5 cm) | Distance from drone center to each motor hub |
+| **Control Frequency** | `200 Hz` ($\Delta t = 5.0\text{ ms}$) | High-speed attitude control loop |
+| **Gravitational Acceleration ($g$)** | `9.81 m/s²` | Standard downward Earth gravity |
+| **Max Tilt Angle** | `35°` | Safety limit to prevent in-flight tumbling |
+
+* **Collective Thrust ($T$):** The total upward force produced by all 4 rotors along the drone's body $Z$-axis. In hover, $T \approx 11.8\text{ N}$ to balance gravity.
+* **Control Torques ($\boldsymbol{\tau}$):** Three-axis rotational torques ($[\tau_x, \tau_y, \tau_z]$ in $\text{N}\cdot\text{m}$) computed by the quaternion backstepping controller to bank, pitch, and turn the drone.
+
+---
+
+### 14.2 Trajectory Planning & Obstacle Avoidance
+
+Instead of simple straight lines with jerky stop-and-go movements, the mission path uses smooth mathematical curves:
+
+* **Smooth Spline Trajectory:** Uses continuous 5th-order polynomial splines so that position, velocity, and acceleration transition smoothly from one waypoint to the next.
+* **Obstacle Clearance:** If an obstacle tower stands directly between two waypoints, the trajectory automatically curves around it with a **0.6 m safety margin**.
+* **Why the Reference Line Bends:** A quadrotor must tilt into its direction of acceleration. If the path were a straight line passing through a tower, the drone would follow it and crash. The curved path provides the drone with a safe, physically feasible route to follow.
+
+---
+
+### 14.3 Real-World Wind & Disturbance Model
+
+Real drones outdoors do not fly in calm, still air. We injected realistic aerodynamic forces to verify that the controller can handle real-world conditions:
+
+* **Steady Crosswind:** A continuous breeze vector (`[1.5, -1.1, 0.3] m/s`) pushing against the airframe.
+* **Wind Gusts:** Multi-frequency gusts (up to `2.2 m/s`) that periodically buffet the drone from changing angles.
+* **Air Turbulence & Wake Noise:** Random aerodynamic force ($\sigma = 0.56\text{ N}$) and rotor torque noise ($\sigma = 0.05\text{ N}\cdot\text{m}$).
+* **Flight Effect:** This causes the drone to naturally sway by $\pm 10\text{ to }15\text{ cm}$, demonstrating that the controller actively resists wind forces to stay on course.
+
+---
+
+### 14.4 Real-Time Telemetry Dashboard (HUD)
+
+A live telemetry panel on the right side of the screen monitors the flight in real time:
+
+* **Flight Clock & Target:** Mission elapsed time and the current target waypoint number.
+* **Tracking Error ($\|e_p\|$):** Euclidean distance between where the drone should be and where it actually is (in meters).
+* **Attitude (Roll, Pitch, Yaw):** Real-time body tilt angles in degrees ($\phi, \theta, \psi$).
+* **Actuator Telemetry:** Total motor thrust ($T$) in Newtons and control torques ($\tau_x, \tau_y, \tau_z$) in $\text{N}\cdot\text{m}$.
+* **Control States:** Internal backstepping error states ($z_1, z_2$) proving the controller remains stable throughout the flight.
+
+---
+
+### 14.5 Visual Flight Path & Trail System
+
+* **Electric Cyan 3D Tube:** The planned, collision-free **Reference Path** with vertical drop pillars down to ground target pads. (Can be toggled ON/OFF with the on-screen button).
+* **Flame Orange Ribbon:** The drone's **Actual Flight Trail** drawn in real time behind the drone, allowing visual verification of tracking precision despite wind disturbances.
+---
 # Results
 
 The closed-loop simulation evaluates the attitude tracking and controller performance using quaternion error, angular velocity error, backstepping error, and control torque.
