@@ -515,6 +515,14 @@ A live telemetry panel on the right side of the screen displaying:
 * **Actuators:** Total motor thrust ($T$) in Newtons and torques ($\tau_x, \tau_y, \tau_z$) in $\text{N}\cdot\text{m}$.
 * **Control States:** Internal backstepping error states ($z_1, z_2$) verifying closed-loop stability.
 
+
+## Results
+
+<p align="center">
+  <img src="rohitdrones.jpeg" width="700">
+</p>
+
+
 ---
 ## 13. PyBullet 3D Simulation Environment
 
