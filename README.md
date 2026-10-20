@@ -2756,13 +2756,14 @@ Together, Equations (16)–(23) establish the second backstepping stage: define 
 
 
 
-# Numerical Example of the Quaternion-Based Backstepping Controller
 
-This section demonstrates how the quaternion-based backstepping controller calculates attitude error, angular velocity error, backstepping error, and control torque using numerical values.
+# Complete Numerical Example of the Backstepping Controller
+
+This numerical example demonstrates the complete calculation of the quaternion-based backstepping controller, starting from the actual and desired states and ending with the total control torque.
 
 ## 1. Given Parameters
 
-Use the following inertia matrix and controller gains:
+The inertia matrix used in the research paper is:
 
 ```math
 J=
@@ -2771,28 +2772,29 @@ J=
 0&0.1&0\\
 0&0&0.12
 \end{bmatrix}
-\ \mathrm{kg\,m^2}
 ```
+
+The controller gains are:
 
 ```math
 k_1=20,\qquad k_2=2
 ```
 
-For this example, assume that the actual and reference states at a particular instant are:
+For this illustrative example, consider the following actual and reference states at one instant.
 
-Actual attitude quaternion:
+Actual quaternion:
 
 ```math
 q=
 \begin{bmatrix}
-0.965926\\
+0.8660254\\
 0\\
 0\\
-0.258819
+0.5
 \end{bmatrix}
 ```
 
-Reference attitude quaternion:
+Reference quaternion:
 
 ```math
 q_{\mathrm{ref}}=
@@ -2813,7 +2815,6 @@ Actual angular velocity:
 -0.1\\
 0.3
 \end{bmatrix}
-\ \mathrm{rad/s}
 ```
 
 Reference angular velocity:
@@ -2825,10 +2826,9 @@ Reference angular velocity:
 -0.1\\
 0.2
 \end{bmatrix}
-\ \mathrm{rad/s}
 ```
 
-For the torque calculation, assume that the reference angular acceleration at this instant is:
+Reference angular acceleration:
 
 ```math
 \dot{\boldsymbol{\omega}}_{\mathrm{ref}}=
@@ -2837,19 +2837,23 @@ For the torque calculation, assume that the reference angular acceleration at th
 0\\
 -0.02
 \end{bmatrix}
-\ \mathrm{rad/s^2}
 ```
 
-## 2. Calculate the Quaternion Attitude Error
+Our objective is to calculate the quaternion error, desired angular velocity error, angular velocity tracking error, backstepping error, and final control torque.
 
-Using Equation (10):
+---
+
+## 2. Calculate the Quaternion Error — Equation (10)
+
+The paper defines the quaternion error as:
 
 ```math
-q_{\mathrm{err}}=
+q_{\mathrm{err}}
+=
 q_{\mathrm{ref}}^*\otimes q
 ```
 
-The conjugate of the reference quaternion is:
+First, calculate the conjugate of the reference quaternion:
 
 ```math
 q_{\mathrm{ref}}^*=
@@ -2861,7 +2865,27 @@ q_{\mathrm{ref}}^*=
 \end{bmatrix}
 ```
 
-Since this is the identity quaternion, its multiplication leaves the actual quaternion unchanged.
+Substitute the values:
+
+```math
+q_{\mathrm{err}}
+=
+\begin{bmatrix}
+1\\
+0\\
+0\\
+0
+\end{bmatrix}
+\otimes
+\begin{bmatrix}
+0.8660254\\
+0\\
+0\\
+0.5
+\end{bmatrix}
+```
+
+Multiplication by the identity quaternion leaves the quaternion unchanged.
 
 Therefore:
 
@@ -2869,44 +2893,132 @@ Therefore:
 \boxed{
 q_{\mathrm{err}}=
 \begin{bmatrix}
-0.965926\\
+0.8660254\\
 0\\
 0\\
-0.258819
+0.5
 \end{bmatrix}
 }
 ```
 
-The scalar component is:
+This quaternion represents an attitude difference of approximately 60 degrees about the third axis.
+
+The identity quaternion is:
 
 ```math
-\eta=0.965926
-```
-
-The vector component is:
-
-```math
-\boldsymbol{\epsilon}=
+q_i=
 \begin{bmatrix}
+1\\
 0\\
 0\\
-0.258819
+0
 \end{bmatrix}
 ```
 
-This quaternion represents an illustrative attitude error of approximately 30 degrees about the third axis.
+The objective of the controller is to drive the quaternion error toward this identity quaternion.
 
-## 3. Calculate the Desired Angular Velocity Error
+---
 
-Using the vector-part virtual control from Equation (13):
+## 3. Calculate the Desired Angular Velocity Error — Equation (13)
+
+The virtual-control equation in the paper is:
 
 ```math
+\begin{bmatrix}
+0\\
 \boldsymbol{\omega}_{\mathrm{err},d}
+\end{bmatrix}
 =
--k_1\boldsymbol{\epsilon}
+-k_1 q_{\mathrm{err}}^*
+\otimes(q_{\mathrm{err}}-q_i)
 ```
 
-Substitute the numerical values:
+First, calculate the quaternion conjugate:
+
+```math
+q_{\mathrm{err}}^*=
+\begin{bmatrix}
+0.8660254\\
+0\\
+0\\
+-0.5
+\end{bmatrix}
+```
+
+Next, subtract the identity quaternion:
+
+```math
+q_{\mathrm{err}}-q_i
+=
+\begin{bmatrix}
+0.8660254\\
+0\\
+0\\
+0.5
+\end{bmatrix}
+-
+\begin{bmatrix}
+1\\
+0\\
+0\\
+0
+\end{bmatrix}
+```
+
+Therefore:
+
+```math
+q_{\mathrm{err}}-q_i
+=
+\begin{bmatrix}
+-0.1339746\\
+0\\
+0\\
+0.5
+\end{bmatrix}
+```
+
+Substitute into the virtual-control equation:
+
+```math
+-k_1
+\begin{bmatrix}
+0.8660254\\
+0\\
+0\\
+-0.5
+\end{bmatrix}
+\otimes
+\begin{bmatrix}
+-0.1339746\\
+0\\
+0\\
+0.5
+\end{bmatrix}
+```
+
+Using the quaternion multiplication formula, the product is:
+
+```math
+q_{\mathrm{err}}^*\otimes(q_{\mathrm{err}}-q_i)
+=
+\begin{bmatrix}
+0.1339746\\
+0\\
+0\\
+0.5
+\end{bmatrix}
+```
+
+The left-hand side of Equation (13) is a pure quaternion: its scalar component is zero. Therefore, for the three-component angular velocity command, we use the vector components of the product.
+
+With:
+
+```math
+k_1=20
+```
+
+the desired angular velocity error is:
 
 ```math
 \boldsymbol{\omega}_{\mathrm{err},d}
@@ -2915,11 +3027,11 @@ Substitute the numerical values:
 \begin{bmatrix}
 0\\
 0\\
-0.258819
+0.5
 \end{bmatrix}
 ```
 
-Therefore:
+Hence:
 
 ```math
 \boxed{
@@ -2928,17 +3040,18 @@ Therefore:
 \begin{bmatrix}
 0\\
 0\\
--5.17638
+-10
 \end{bmatrix}
-\ \mathrm{rad/s}
 }
 ```
 
-This is the desired angular velocity error generated by the first backstepping stage.
+This is the virtual angular velocity error generated from the attitude error.
 
-## 4. Calculate the Angular Velocity Tracking Error
+---
 
-Using Equation (11):
+## 4. Calculate the Angular Velocity Tracking Error — Equation (11)
+
+The paper defines the angular velocity error as:
 
 ```math
 \boldsymbol{\omega}_{\mathrm{err}}
@@ -2948,7 +3061,7 @@ Using Equation (11):
 \boldsymbol{\omega}_{\mathrm{ref}}
 ```
 
-Substitute the actual and reference angular velocities:
+Substitute the given values:
 
 ```math
 \boldsymbol{\omega}_{\mathrm{err}}
@@ -2966,7 +3079,7 @@ Substitute the actual and reference angular velocities:
 \end{bmatrix}
 ```
 
-Subtract component by component:
+Subtract each component:
 
 ```math
 \boxed{
@@ -2977,15 +3090,16 @@ Subtract component by component:
 0\\
 0.1
 \end{bmatrix}
-\ \mathrm{rad/s}
 }
 ```
 
-The result shows that the actual angular velocity differs from the reference angular velocity along the first and third axes.
+This represents the difference between the actual angular velocity and the reference angular velocity.
 
-## 5. Calculate the Backstepping Error
+---
 
-Using Equation (16):
+## 5. Calculate the Backstepping Error — Equation (16)
+
+The paper defines the backstepping error as:
 
 ```math
 \boldsymbol{\delta}
@@ -3009,7 +3123,7 @@ Substitute the calculated values:
 \begin{bmatrix}
 0\\
 0\\
--5.17638
+-10
 \end{bmatrix}
 ```
 
@@ -3022,25 +3136,189 @@ Therefore:
 \begin{bmatrix}
 0.1\\
 0\\
-5.27638
+10.1
 \end{bmatrix}
-\ \mathrm{rad/s}
 }
 ```
 
-The backstepping error measures the difference between the actual angular velocity error and the desired angular velocity error.
+This is the error that the second stage of the controller must drive toward zero.
 
-The torque controller now attempts to drive this error toward zero.
+---
 
-## 6. Calculate the Gyroscopic Term
+## 6. Calculate the Quaternion Error Derivative — Equation (12)
 
-The gyroscopic term in Equation (9) is:
+The paper gives the quaternion error dynamics as:
+
+```math
+\dot q_{\mathrm{err}}
+=
+\frac{1}{2}
+q_{\mathrm{err}}\otimes
+\begin{bmatrix}
+0\\
+\boldsymbol{\omega}_{\mathrm{err}}
+\end{bmatrix}
+```
+
+Substitute the calculated values:
+
+```math
+\dot q_{\mathrm{err}}
+=
+\frac{1}{2}
+\begin{bmatrix}
+0.8660254\\
+0\\
+0\\
+0.5
+\end{bmatrix}
+\otimes
+\begin{bmatrix}
+0\\
+0.1\\
+0\\
+0.1
+\end{bmatrix}
+```
+
+Using quaternion multiplication:
+
+```math
+q_{\mathrm{err}}\otimes
+\begin{bmatrix}
+0\\
+0.1\\
+0\\
+0.1
+\end{bmatrix}
+=
+\begin{bmatrix}
+-0.05\\
+0.08660254\\
+0.05\\
+0.08660254
+\end{bmatrix}
+```
+
+Multiplying by one-half:
+
+```math
+\boxed{
+\dot q_{\mathrm{err}}
+=
+\begin{bmatrix}
+-0.025\\
+0.04330127\\
+0.025\\
+0.04330127
+\end{bmatrix}
+}
+```
+
+This derivative describes how the quaternion error changes at the selected instant under Equation (12).
+
+---
+
+## 7. Calculate the Derivative of the Desired Angular Velocity Error — Equation (20)
+
+The paper obtains the derivative of the virtual control by differentiating Equation (13):
+
+```math
+\begin{bmatrix}
+0\\
+\dot{\boldsymbol{\omega}}_{\mathrm{err},d}
+\end{bmatrix}
+=
+\frac{d}{dt}
+\left[
+-k_1q_{\mathrm{err}}^*
+\otimes(q_{\mathrm{err}}-q_i)
+\right]
+```
+
+The gain is constant, so differentiate the quaternion product using the product rule:
+
+```math
+\begin{aligned}
+\frac{d}{dt}
+\left[
+-k_1q_{\mathrm{err}}^*
+\otimes(q_{\mathrm{err}}-q_i)
+\right]
+={}&-k_1\left[
+\dot q_{\mathrm{err}}^*
+\otimes(q_{\mathrm{err}}-q_i)\right.\\
+&\left.+
+q_{\mathrm{err}}^*\otimes\dot q_{\mathrm{err}}
+\right]
+\end{aligned}
+```
+
+For the three-component virtual control, the vector part of the differentiated expression is used.
+
+From the quaternion error derivative:
+
+```math
+\dot q_{\mathrm{err}}
+=
+\begin{bmatrix}
+-0.025\\
+0.04330127\\
+0.025\\
+0.04330127
+\end{bmatrix}
+```
+
+The vector components are:
+
+```math
+\begin{bmatrix}
+0.04330127\\
+0.025\\
+0.04330127
+\end{bmatrix}
+```
+
+Using the differentiated vector-part form of the virtual control:
+
+```math
+\dot{\boldsymbol{\omega}}_{\mathrm{err},d}
+=
+-k_1
+\begin{bmatrix}
+0.04330127\\
+0.025\\
+0.04330127
+\end{bmatrix}
+```
+
+Substitute the gain:
+
+```math
+\boxed{
+\dot{\boldsymbol{\omega}}_{\mathrm{err},d}
+=
+\begin{bmatrix}
+-0.8660254\\
+-0.5\\
+-0.8660254
+\end{bmatrix}
+}
+```
+
+This term accounts for the change in the virtual-control command.
+
+---
+
+## 8. Calculate the Gyroscopic Term — Equation (9)
+
+The rotational dynamics contain the term:
 
 ```math
 \boldsymbol{\omega}\times(J\boldsymbol{\omega})
 ```
 
-First, calculate angular momentum in body coordinates:
+First calculate angular momentum:
 
 ```math
 J\boldsymbol{\omega}
@@ -3069,15 +3347,15 @@ J\boldsymbol{\omega}
 \end{bmatrix}
 ```
 
-Now calculate the cross product:
+Calculate the cross product:
 
 ```math
 \boldsymbol{\omega}\times(J\boldsymbol{\omega})
 =
 \begin{bmatrix}
--0.1(0.036)-0.3(-0.01)\\
-0.3(0.02)-0.2(0.036)\\
-0.2(-0.01)-(-0.1)(0.02)
+(-0.1)(0.036)-(0.3)(-0.01)\\
+(0.3)(0.02)-(0.2)(0.036)\\
+(0.2)(-0.01)-(-0.1)(0.02)
 \end{bmatrix}
 ```
 
@@ -3092,133 +3370,16 @@ Simplifying:
 -0.0012\\
 0
 \end{bmatrix}
-\ \mathrm{N\,m}
 }
 ```
 
-This term accounts for the coupling between angular velocity and angular momentum.
+This is the gyroscopic contribution to the rotational dynamics.
 
-## 7. Calculate the Derivative of the Virtual Control
+---
 
-The vector-part virtual control is:
+## 9. Calculate the Compensation Torque — Equation (21)
 
-```math
-\boldsymbol{\omega}_{\mathrm{err},d}
-=
--k_1\boldsymbol{\epsilon}
-```
-
-Since the gain is constant:
-
-```math
-\dot{\boldsymbol{\omega}}_{\mathrm{err},d}
-=
--k_1\dot{\boldsymbol{\epsilon}}
-```
-
-Using the vector part of the quaternion error kinematics:
-
-```math
-\dot{\boldsymbol{\epsilon}}
-=
-\frac{1}{2}
-\left(
-\eta I+
-[\boldsymbol{\epsilon}]_{\times}
-\right)
-\boldsymbol{\omega}_{\mathrm{err}}
-```
-
-where:
-
-```math
-[\boldsymbol{\epsilon}]_{\times}
-=
-\begin{bmatrix}
-0&-\epsilon_3&\epsilon_2\\
-\epsilon_3&0&-\epsilon_1\\
--\epsilon_2&\epsilon_1&0
-\end{bmatrix}
-```
-
-For the current values:
-
-```math
-\eta=0.965926
-```
-
-```math
-\boldsymbol{\epsilon}=
-\begin{bmatrix}
-0\\
-0\\
-0.258819
-\end{bmatrix}
-```
-
-Therefore:
-
-```math
-\dot{\boldsymbol{\epsilon}}
-=
-\frac{1}{2}
-\begin{bmatrix}
-0.965926&-0.258819&0\\
-0.258819&0.965926&0\\
-0&0&0.965926
-\end{bmatrix}
-\begin{bmatrix}
-0.1\\
-0\\
-0.1
-\end{bmatrix}
-```
-
-The result is:
-
-```math
-\dot{\boldsymbol{\epsilon}}
-\approx
-\begin{bmatrix}
-0.0482963\\
-0.0129410\\
-0.0482963
-\end{bmatrix}
-```
-
-Multiplying by the negative gain:
-
-```math
-\dot{\boldsymbol{\omega}}_{\mathrm{err},d}
-=
--20
-\begin{bmatrix}
-0.0482963\\
-0.0129410\\
-0.0482963
-\end{bmatrix}
-```
-
-Therefore:
-
-```math
-\boxed{
-\dot{\boldsymbol{\omega}}_{\mathrm{err},d}
-\approx
-\begin{bmatrix}
--0.965926\\
--0.258819\\
--0.965926
-\end{bmatrix}
-\ \mathrm{rad/s^2}
-}
-```
-
-This term accounts for the changing virtual-control command in the torque calculation.
-
-## 8. Calculate the Compensation Torque
-
-Using Equation (21):
+The paper defines the compensation torque as:
 
 ```math
 \boldsymbol{\tau}_1
@@ -3230,7 +3391,7 @@ J\dot{\boldsymbol{\omega}}_{\mathrm{ref}}
 J\dot{\boldsymbol{\omega}}_{\mathrm{err},d}
 ```
 
-First, calculate the reference-acceleration contribution:
+First calculate the reference acceleration contribution:
 
 ```math
 J\dot{\boldsymbol{\omega}}_{\mathrm{ref}}
@@ -3247,6 +3408,8 @@ J\dot{\boldsymbol{\omega}}_{\mathrm{ref}}
 \end{bmatrix}
 ```
 
+Therefore:
+
 ```math
 J\dot{\boldsymbol{\omega}}_{\mathrm{ref}}
 =
@@ -3257,19 +3420,36 @@ J\dot{\boldsymbol{\omega}}_{\mathrm{ref}}
 \end{bmatrix}
 ```
 
-Next, calculate the virtual-control derivative contribution:
+Next calculate the derivative contribution:
 
 ```math
 J\dot{\boldsymbol{\omega}}_{\mathrm{err},d}
-\approx
+=
 \begin{bmatrix}
--0.0965926\\
--0.0258819\\
--0.1159111
+0.1&0&0\\
+0&0.1&0\\
+0&0&0.12
+\end{bmatrix}
+\begin{bmatrix}
+-0.8660254\\
+-0.5\\
+-0.8660254
 \end{bmatrix}
 ```
 
-Combine all three terms:
+Therefore:
+
+```math
+J\dot{\boldsymbol{\omega}}_{\mathrm{err},d}
+=
+\begin{bmatrix}
+-0.08660254\\
+-0.05\\
+-0.10392305
+\end{bmatrix}
+```
+
+Substitute all three terms:
 
 ```math
 \boldsymbol{\tau}_1
@@ -3287,40 +3467,34 @@ Combine all three terms:
 \end{bmatrix}
 +
 \begin{bmatrix}
--0.0965926\\
--0.0258819\\
--0.1159111
+-0.08660254\\
+-0.05\\
+-0.10392305
 \end{bmatrix}
 ```
 
-Therefore:
+Adding the components:
 
 ```math
 \boxed{
 \boldsymbol{\tau}_1
 \approx
 \begin{bmatrix}
--0.0921926\\
--0.0270819\\
--0.1183111
+-0.08220254\\
+-0.0512\\
+-0.10632305
 \end{bmatrix}
 \ \mathrm{N\,m}
 }
 ```
 
-This component compensates for the rotational dynamics and changing reference signals.
+This is the compensation torque.
 
-## 9. Calculate the One-Third Power of the Backstepping Error
+---
 
-The second torque component uses:
+## 10. Calculate the One-Third Power of the Backstepping Error
 
-```math
-\boldsymbol{\tau}_2
-=
--k_2J\boldsymbol{\delta}^{1/3}
-```
-
-The backstepping error is:
+Equation (22) requires the one-third power of the backstepping error.
 
 ```math
 \boldsymbol{\delta}
@@ -3328,7 +3502,7 @@ The backstepping error is:
 \begin{bmatrix}
 0.1\\
 0\\
-5.27638
+10.1
 \end{bmatrix}
 ```
 
@@ -3340,29 +3514,31 @@ Calculate its real cube root component by component:
 \begin{bmatrix}
 \sqrt[3]{0.1}\\
 \sqrt[3]{0}\\
-\sqrt[3]{5.27638}
+\sqrt[3]{10.1}
 \end{bmatrix}
 ```
 
-Therefore:
+Numerically:
 
 ```math
 \boxed{
 \boldsymbol{\delta}^{1/3}
 \approx
 \begin{bmatrix}
-0.464159\\
+0.46415888\\
 0\\
-1.74092
+2.16159235
 \end{bmatrix}
 }
 ```
 
-The cube root preserves the sign of negative error components as well. This is important because the feedback must drive errors toward zero regardless of their signs.
+The fractional-power feedback uses the real cube root, including when error components are negative.
 
-## 10. Calculate the Feedback Torque
+---
 
-Using Equation (22):
+## 11. Calculate the Feedback Torque — Equation (22)
+
+The paper defines the second torque component as:
 
 ```math
 \boldsymbol{\tau}_2
@@ -3370,7 +3546,7 @@ Using Equation (22):
 -k_2J\boldsymbol{\delta}^{1/3}
 ```
 
-Substitute the numerical values:
+Substitute the gain and inertia matrix:
 
 ```math
 \boldsymbol{\tau}_2
@@ -3382,9 +3558,9 @@ Substitute the numerical values:
 0&0&0.12
 \end{bmatrix}
 \begin{bmatrix}
-0.464159\\
+0.46415888\\
 0\\
-1.74092
+2.16159235
 \end{bmatrix}
 ```
 
@@ -3394,32 +3570,34 @@ First multiply by the inertia matrix:
 J\boldsymbol{\delta}^{1/3}
 \approx
 \begin{bmatrix}
-0.0464159\\
+0.04641589\\
 0\\
-0.2089104
+0.25939108
 \end{bmatrix}
 ```
 
-Then multiply by the negative gain:
+Multiply by the negative gain:
 
 ```math
 \boxed{
 \boldsymbol{\tau}_2
 \approx
 \begin{bmatrix}
--0.0928318\\
+-0.09283178\\
 0\\
--0.4178208
+-0.51878216
 \end{bmatrix}
 \ \mathrm{N\,m}
 }
 ```
 
-This is the torque component that drives the backstepping error toward zero under the intended error dynamics.
+This is the fractional-power feedback torque.
 
-## 11. Calculate the Final Control Torque
+---
 
-The total torque is the sum of the compensation torque and the feedback torque:
+## 12. Calculate the Total Backstepping Control Torque
+
+The total control torque is the sum of the two torque components:
 
 ```math
 \boldsymbol{\tau}
@@ -3427,44 +3605,46 @@ The total torque is the sum of the compensation torque and the feedback torque:
 \boldsymbol{\tau}_1+\boldsymbol{\tau}_2
 ```
 
-Substituting the calculated values:
+Substitute the calculated values:
 
 ```math
 \boldsymbol{\tau}
 \approx
 \begin{bmatrix}
--0.0921926\\
--0.0270819\\
--0.1183111
+-0.08220254\\
+-0.0512\\
+-0.10632305
 \end{bmatrix}
 +
 \begin{bmatrix}
--0.0928318\\
+-0.09283178\\
 0\\
--0.4178208
+-0.51878216
 \end{bmatrix}
 ```
 
-Therefore, the final control torque is approximately:
+Adding the components gives:
 
 ```math
 \boxed{
 \boldsymbol{\tau}
 \approx
 \begin{bmatrix}
--0.1850244\\
--0.0270819\\
--0.5361319
+-0.17503432\\
+-0.0512\\
+-0.62510521
 \end{bmatrix}
 \ \mathrm{N\,m}
 }
 ```
 
-These values are the calculated control torques for the illustrative state and derivative values used in this example.
+This is the total backstepping control torque for the selected state.
 
-## 12. Calculate the Backstepping Error Derivative
+---
 
-Using Equation (23):
+## 13. Verify the Controller — Equation (23)
+
+The paper specifies the desired backstepping error dynamics as:
 
 ```math
 \dot{\boldsymbol{\delta}}
@@ -3472,16 +3652,16 @@ Using Equation (23):
 -k_2\boldsymbol{\delta}^{1/3}
 ```
 
-Substitute the calculated cube root:
+Using the calculated fractional-power error:
 
 ```math
 \dot{\boldsymbol{\delta}}
 =
 -2
 \begin{bmatrix}
-0.464159\\
+0.46415888\\
 0\\
-1.74092
+2.16159235
 \end{bmatrix}
 ```
 
@@ -3492,80 +3672,122 @@ Therefore:
 \dot{\boldsymbol{\delta}}
 \approx
 \begin{bmatrix}
--0.928318\\
+-0.92831777\\
 0\\
--3.48184
+-4.32318470
 \end{bmatrix}
 }
 ```
 
-The first and third error components have negative derivatives because their current values are positive. Both components therefore move toward zero under the designed error dynamics.
+The positive first and third error components have negative derivatives, meaning that they move toward zero in the designed error model. The second component is already zero.
 
-The second component is already zero and remains at zero in the ideal model.
+This is the target error behaviour produced by the compensation and feedback torque design under the ideal rotational model.
 
-## 13. Estimate the Ideal Convergence Time
+---
 
-For each scalar error component, the ideal time to reach zero under the one-third-power feedback law is:
+## 14. Final Numerical Results
 
-```math
-T_i=
-\frac{3}{2k_2}
-|\delta_i(0)|^{2/3}
-```
-
-Using the selected gain:
+The quaternion error is:
 
 ```math
-k_2=2
+q_{\mathrm{err}}=
+\begin{bmatrix}
+0.8660254\\
+0\\
+0\\
+0.5
+\end{bmatrix}
 ```
 
-For the first component:
+The angular velocity tracking error is:
 
 ```math
-T_1=
-\frac{3}{4}(0.1)^{2/3}
+\boldsymbol{\omega}_{\mathrm{err}}
+=
+\begin{bmatrix}
+0.1\\
+0\\
+0.1
+\end{bmatrix}
 ```
+
+The desired angular velocity error is:
+
+```math
+\boldsymbol{\omega}_{\mathrm{err},d}
+=
+\begin{bmatrix}
+0\\
+0\\
+-10
+\end{bmatrix}
+```
+
+The backstepping error is:
+
+```math
+\boldsymbol{\delta}
+=
+\begin{bmatrix}
+0.1\\
+0\\
+10.1
+\end{bmatrix}
+```
+
+The compensation torque is:
+
+```math
+\boldsymbol{\tau}_1
+\approx
+\begin{bmatrix}
+-0.08220254\\
+-0.0512\\
+-0.10632305
+\end{bmatrix}
+\ \mathrm{N\,m}
+```
+
+The feedback torque is:
+
+```math
+\boldsymbol{\tau}_2
+\approx
+\begin{bmatrix}
+-0.09283178\\
+0\\
+-0.51878216
+\end{bmatrix}
+\ \mathrm{N\,m}
+```
+
+The final control torque is:
 
 ```math
 \boxed{
-T_1\approx0.1616\ \mathrm{s}
+\boldsymbol{\tau}
+\approx
+\begin{bmatrix}
+-0.17503432\\
+-0.0512\\
+-0.62510521
+\end{bmatrix}
+\ \mathrm{N\,m}
 }
 ```
 
-For the second component, the initial error is zero:
+The intended backstepping error derivative is:
 
 ```math
-\boxed{
-T_2=0
-}
+\dot{\boldsymbol{\delta}}
+\approx
+\begin{bmatrix}
+-0.92831777\\
+0\\
+-4.32318470
+\end{bmatrix}
 ```
 
-For the third component:
+This example illustrates the complete controller calculation, starting from the selected actual and reference states and progressing through the quaternion error, virtual control, backstepping error, torque components, and final control torque.
 
-```math
-T_3=
-\frac{3}{4}(5.27638)^{2/3}
-```
-
-```math
-\boxed{
-T_3\approx2.2731\ \mathrm{s}
-}
-```
-
-These are ideal scalar-model estimates for the chosen initial errors. They are not measured simulation results and should not be confused with the convergence times reported in the research paper.
-
-## 14. Numerical Example Summary
-
-The calculations demonstrate the complete sequence of the backstepping controller:
-
-1. The quaternion error measures the attitude mismatch.
-2. The virtual control calculates the desired angular velocity correction.
-3. The angular velocity error measures the difference between actual and reference motion.
-4. The backstepping error measures the difference between the actual error and the virtual-control command.
-5. The compensation torque accounts for rotational coupling and changing reference signals.
-6. The fractional-power feedback torque drives the backstepping error toward zero.
-
-The final torque is obtained by combining the compensation and feedback components.
-
-The example illustrates how the quaternion-based backstepping controller converts attitude and angular velocity errors into control torque. Actual convergence and tracking performance must still be evaluated using the complete simulation model, including numerical integration, disturbances, and actuator constraints.
+**Note:** This is an illustrative numerical example using the paper's control equations. The initial states and reference derivatives are assumed for calculation, not reported experimental results.
