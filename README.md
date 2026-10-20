@@ -725,6 +725,12 @@ The simulation uses visual markers to represent the route, waypoints, obstacles,
 5. **Orange Dashed Line:** Represents the original planned route between waypoints.
 6. **Solid Blue Line:** Represents the actual flight path traveled by the drone.
 
+## Results
+
+<p align="center">
+  <img src="Mujoco.jpeg" width="500">
+</p>
+
    ____
 
 ### 15.1 UAV Simulation & Physical Environment
