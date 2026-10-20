@@ -645,9 +645,6 @@ A dedicated, non-blocking desktop graphical HUD (built with Tkinter) runs alongs
 ### 13.5 Standalone Benchmark Execution
 
 The standalone benchmark evaluates the quaternion-based attitude controller independently of the outer-loop position controller. This isolates and validates the attitude controller's tracking performance, convergence rates, and stability limits without interference from external trajectory planning or obstacle avoidance modules.
-## 14. UAV 3D Simulation & Control Environment
-
-To test our **Quaternion-Based Backstepping Controller** on realistic 6-DOF (Degrees-of-Freedom) flight dynamics, we developed a full physics-based simulation and an interactive 3D WebGL environment. It simulates real flight conditions—including wind disturbances and obstacle avoidance.
 
 ---
 
