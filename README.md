@@ -759,6 +759,16 @@ The Python dashboard displays live telemetry and mathematical calculations durin
 - **Trajectory Visualization:** Current position, waypoints, and planned obstacle-avoiding path.
 - **Noise Comparison:** True sensor readings, generated noise, and noisy measurements.
 
+## Results
+
+<p align="center">
+  <img src="Screenshot 2026-10-20 095643.png" width="500">
+</p>
+
+<p align="center">
+  <img src="Screenshot 2026-10-20 095704.png" width="500">
+</p>
+
 
 _____
 
@@ -796,6 +806,7 @@ The control torque should decrease as the system approaches the desired trajecto
 According to the results reported in the research paper, the angular velocity error approaches zero at approximately **0.8 seconds**, while the backstepping error approaches zero at approximately **0.4 seconds**. The reported results also show convergence of the quaternion error toward the identity quaternion and reduction of the control torque as the system reaches the desired behaviour.
 
 The simulation therefore provides a way to evaluate how effectively the quaternion-based backstepping controller tracks the prescribed attitude trajectory.
+
 
 ---
 
