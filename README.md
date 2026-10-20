@@ -750,11 +750,8 @@ The quadrotor is simulated using **ArduPilot SITL and Gazebo Harmonic**, with Py
 The mission uses the **A* star search algorithm** to plan a path around obstacles represented on a Python planning map.
 
 - **Waypoint Navigation:** The drone follows four waypoints in sequence.
-- **Obstacle Representation:** Circular obstacles are defined using coordinates and radii.
-- **Safety Clearance:** A clearance distance is considered during path planning.
+- **Obstacle Representation:** Circular obstacles 
 - **Path Optimization:** A* searches the grid for a feasible route while avoiding blocked regions.
-
-*Note: Physical obstacle avoidance requires corresponding obstacles in Gazebo and suitable sensor-based detection.*
 
 ---
 
