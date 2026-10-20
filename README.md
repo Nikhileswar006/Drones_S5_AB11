@@ -533,11 +533,11 @@ To validate the theoretical quaternion backstepping controller on realistic 6-DO
 
 | Physical Parameter | Value | Description |
 |---|---:|---|
-| Total Mass ($m$) | $1.0\,\text{kg}$ | Quadrotor airframe & payload mass |
-| Inertia Matrix ($J$) | $\text{diag}(0.1,\ 0.1,\ 0.12)\,\text{kg}\cdot\text{m}^2$ | Principal moments of inertia |
-| Arm Length ($L$) | $0.22\,\text{m}$ | Motor center to center-of-gravity distance |
-| Physics Timestep ($\Delta t$) | $1/240\,\text{s}\ (4.167\,\text{ms})$ | High-frequency symplectic integrator step |
-| Gravitational Acceleration ($g$) | $9.81\,\text{m/s}^2$ | Earth standard gravity along $-\hat{\mathbf{z}}_W$ |
+| Total Mass ($m$) | $1.0\ \text{kg}$ | Quadrotor airframe & payload mass |
+| Inertia Matrix ($J$) | $\text{diag}(0.1,\ 0.1,\ 0.12)\ \text{kg}\cdot\text{m}^2$ | Principal moments of inertia |
+| Arm Length ($L$) | $0.22\ \text{m}$ | Motor center to center-of-gravity distance |
+| Physics Timestep ($\Delta t$) | $1/240\ \text{s}\ (4.167\ \text{ms})$ | High-frequency symplectic integrator step |
+| Gravitational Acceleration ($g$) | $9.81\ \text{m/s}^2$ | Earth standard gravity along $-\hat{\mathbf{z}}_W$ |
 
 The environment applies body-frame forces and torques:
 
