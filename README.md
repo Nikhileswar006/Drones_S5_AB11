@@ -620,7 +620,7 @@ When an unmapped obstacle appears during flight:
 1. Detect the obstacle using the virtual LiDAR.
 2. Compute a suitable avoidance direction.
 3. Update the trajectory boundary conditions.
-4. Regenerate a smooth trajectory around the obstacle ($C^1$ or $C^2$ continuity).
+4. Regenerate a smooth trajectory around the obstacle.
 5. Continue tracking the updated path.
 
 ---
