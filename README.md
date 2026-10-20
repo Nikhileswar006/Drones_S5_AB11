@@ -495,7 +495,7 @@ Modeled as a rigid body with 4 rotors in an 'X' frame:
   * **Normal Vector ($\hat{n}_{\text{lat}}$):** Computes a $90^\circ$ sideways horizontal vector perpendicular to the flight path.
   * **Smooth Evasion Polynomial:** Uses a $C^2$-continuous bell-curve function:
     $$P(s) = 64 \cdot s^3 \cdot (1 - s)^3$$
-  * **Safe Clearance:** Smoothly pushes the drone **$1.15\text{ m}$ to the side** at the midpoint, clearing the $0.45\text{ m}$ tower with a $>0.70\text{ m}$ safety margin.
+  * **Safe Clearance:** Smoothly pushes the drone **$1.15\text{ m}$ to the side** at the midpoint,clearing the $0.45\text{ m}$ tower with a $>0.70\text{ m}$ safety margin.
   * **Automatic Re-convergence:** Once past the obstacle, the drone merges **straight back onto the reference line**.
 * **Why This Approach:** Clearly proves active collision avoidance by showing the drone deviate from the straight mission line and return.
 ---
@@ -505,7 +505,6 @@ Injected directly into the 6-DOF physics equations to simulate real outdoor flig
   * **Steady Crosswind:** Constant breeze vector (`[1.5, -1.1, 0.3] m/s`) causing continuous aerodynamic drag.
   * **Wind Gusts:** Multi-frequency sinusoidal gusts ($0.8\text{ Hz}$, $1.4\text{ Hz}$, $2.2\text{ Hz}$) with amplitudes up to $2.2\text{ m/s}$.
   * **Air Turbulence & Propeller Wake:** Random force noise ($\sigma = 0.56\text{ N}$) and rotor torque noise ($\sigma = 0.05\text{ N}\cdot\text{m}$).
-* **Flight Effect:** Causes a realistic natural sway of $\pm 10\text{ to }15\text{ cm}$, proving the controller actively resists wind forces.
 * **Tuning:** Adjustable via `--noise-factor` (e.g. `0.0` for zero noise, `0.5` for mild breeze, `2.0` for heavy storm).
 ---
 ### 12.4 Real-Time Telemetry Dashboard (HUD)
