@@ -655,6 +655,16 @@ A dedicated, non-blocking desktop graphical HUD (built with Tkinter) runs alongs
 The standalone benchmark evaluates the quaternion-based attitude controller independently of the outer-loop position controller. This isolates and validates the attitude controller's tracking performance, convergence rates, and stability limits without interference from external trajectory planning or obstacle avoidance modules.
 
 ---
+### 13.6 Results
+
+<p align="center">
+  <img src="uav_3d_flight_trajectory.png" width="500">
+</p>
+
+<p align="center">
+  <img src="Screenshot 2026-10-20 055837.png" width="500">
+</p>
+
 
 
 ## **14. MuJoCo 3D Simulation Environment**
