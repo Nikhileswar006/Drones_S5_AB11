@@ -712,7 +712,7 @@ The simulation uses visual markers to represent the route, waypoints, obstacles,
 
    ____
 
-8. ### 15.1 UAV Simulation & Physical Environment
+### 15.1 UAV Simulation & Physical Environment
 
 The quadrotor is simulated using **ArduPilot SITL and Gazebo Harmonic**, with Python handling telemetry, trajectory planning, and mathematical calculations.
 
