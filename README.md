@@ -3791,3 +3791,286 @@ The intended backstepping error derivative is:
 This example illustrates the complete controller calculation, starting from the selected actual and reference states and progressing through the quaternion error, virtual control, backstepping error, torque components, and final control torque.
 
 **Note:** This is an illustrative numerical example using the paper's control equations. The initial states and reference derivatives are assumed for calculation, not reported experimental results.
+
+---
+
+###  Quadrotor Physical Modeling & Dynamics
+Modeled as a rigid body with 4 rotors in an 'X' frame:
+| Parameter | Value | Description |
+| :--- | :--- | :--- |
+| **Total Mass ($m$)** | `1.2 kg` | Frame, battery, and avionics |
+| **Inertia Matrix ($J$)** | `diag(0.1, 0.1, 0.12) kg·m²` | Rotational resistance (X, Y, Z) |
+| **Arm Length ($L$)** | `0.225 m` (22.5 cm) | Center of gravity to motor hub |
+| **Control Rate** | `200 Hz` ($\Delta t = 5\text{ ms}$) | High-frequency attitude loop |
+| **Gravity ($g$)** | `9.81 m/s²` | Standard downward gravity |
+| **Max Tilt Angle** | `35°` | Safety limit to prevent tumbling |
+* **Collective Thrust ($T$):** Total upward force along body $Z$-axis ($\approx 11.8\text{ N}$ to hover).
+* **Control Torques ($\boldsymbol{\tau}$):** Roll ($\tau_x$), pitch ($\tau_y$), and yaw ($\tau_z$) torques in $\text{N}\cdot\text{m}$ computed by the quaternion controller.
+---
+### 1. Trajectory Planning & Reactive Obstacle Avoidance
+* **Straight Reference Corridor:** Direct straight lines connecting waypoints (`Start → WP1 → WP2 → ...`).
+* **How Obstacle Avoidance Works:**
+  * **Normal Vector ($\hat{n}_{\text{lat}}$):** Computes a $90^\circ$ sideways horizontal vector perpendicular to the flight path.
+  * **Smooth Evasion Polynomial:** Uses a $C^2$-continuous bell-curve function:
+    $$P(s) = 64 \cdot s^3 \cdot (1 - s)^3$$
+  * **Safe Clearance:** Smoothly pushes the drone **$1.15\text{ m}$ to the side** at the midpoint,clearing the $0.45\text{ m}$ tower with a $>0.70\text{ m}$ safety margin.
+  * **Automatic Re-convergence:** Once past the obstacle, the drone merges **straight back onto the reference line**.
+* **Why This Approach:** Clearly proves active collision avoidance by showing the drone deviate from the straight mission line and return.
+---
+### 2. Real-World Wind & Disturbance Model
+Injected directly into the 6-DOF physics equations to simulate real outdoor flight:
+* **What Noise is Used:**
+  * **Steady Crosswind:** Constant breeze vector (`[1.5, -1.1, 0.3] m/s`) causing continuous aerodynamic drag.
+  * **Wind Gusts:** Multi-frequency sinusoidal gusts ($0.8\text{ Hz}$, $1.4\text{ Hz}$, $2.2\text{ Hz}$) with amplitudes up to $2.2\text{ m/s}$.
+  * **Air Turbulence & Propeller Wake:** Random force noise ($\sigma = 0.56\text{ N}$) and rotor torque noise ($\sigma = 0.05\text{ N}\cdot\text{m}$).
+* **Tuning:** Adjustable via `--noise-factor` (e.g. `0.0` for zero noise, `0.5` for mild breeze, `2.0` for heavy storm).
+---
+### 3. Real-Time Telemetry Dashboard (HUD)
+A live telemetry panel on the right side of the screen displaying:
+* **Flight Time & Target:** Mission clock and active target waypoint index.
+* **Tracking Error ($\|e_p\|$):** Distance between the drone and the straight line (shows clearance while dodging).
+* **Attitude (RPY):** Real-time Roll, Pitch, and Yaw tilt angles in degrees.
+* **Actuators:** Total motor thrust ($T$) in Newtons and torques ($\tau_x, \tau_y, \tau_z$) in $\text{N}\cdot\text{m}$.
+* **Control States:** Internal backstepping error states ($z_1, z_2$) verifying closed-loop stability.
+
+
+## Results
+
+<p align="center">
+  <img src="rohitdrones.jpeg" width="700">
+</p>
+
+---
+
+
+# PyBullet 3D UAV Simulation Environment
+
+To validate the theoretical quaternion backstepping controller on realistic 6-DOF flight dynamics, a 3D simulation environment was developed using the **PyBullet physics engine**.
+
+## 1. Quadrotor Physical Modeling and Rigid-Body Dynamics
+
+| Physical Parameter | Value | Description |
+|---|---|---|
+| Total Mass (m) | 1.0 kg | Quadrotor airframe and payload mass |
+| Inertia Matrix (J) | diag(0.1, 0.1, 0.12) kg·m² | Principal moments of inertia |
+| Arm Length (L) | 0.22 m | Motor-to-center-of-gravity distance |
+| Physics Timestep (Δt) | 1/240 s | Physics simulation timestep |
+| Gravity (g) | 9.81 m/s² | Gravitational acceleration |
+
+The environment applies body-frame forces and torques:
+
+- **Collective thrust (T):** Acts along the body Z-axis.
+- **Control torques (τ):** Control roll, pitch, and yaw.
+
+---
+
+## 2. Cascaded 3D Position Control and Trajectory Planning
+
+### 2.1 Outer-Loop Position Controller
+
+The desired acceleration is calculated as:
+
+**a_des = a_d + K_p(p_d − p) + K_d(v_d − v) + K_i ∫(p_d − p) dt + f_rep + g z_W**
+
+Where:
+
+- p_d and p: Desired and actual positions.
+- v_d and v: Desired and actual velocities.
+- a_d: Desired acceleration.
+- K_p, K_d, K_i: Controller gains.
+- f_rep: Obstacle-avoidance force.
+- g: Gravitational acceleration.
+- z_W: World-frame vertical unit vector.
+
+### 2.2 Thrust and Attitude Extraction
+
+The desired body Z-axis is:
+
+**z_B,des = a_des / ||a_des||**
+
+The collective thrust is:
+
+**T = m(a_des · z_B)**
+
+The reference quaternion (q_ref) and thrust (T) are supplied to the inner-loop attitude controller.
+
+### 2.3 Quintic Polynomial Trajectory Generation
+
+The fifth-order trajectory generator provides:
+
+- C²-continuous motion.
+- Smooth position, velocity, and acceleration.
+- Rest-to-rest waypoint transitions.
+- Smooth trajectory stitching.
+
+### 2.4 Altitude Protection and Tilt Limiting
+
+| Safety Constraint | Value |
+|---|---|
+| Minimum vertical acceleration | a_z ≥ 3.0 m/s² |
+| Maximum tilt angle | θ_max = 45° |
+
+---
+
+## 3. Real-Time LiDAR Perception and Obstacle Avoidance
+
+### 3.1 Onboard Virtual LiDAR
+
+PyBullet ray casting (`p.rayTestBatch`) simulates a forward-facing LiDAR scanner to detect obstacles without requiring their coordinates in advance.
+
+| Parameter | Value |
+|---|---|
+| Horizontal rays | 15 |
+| Field of view | 100° |
+| Maximum range | 2.5 m |
+| Update rate | 240 Hz |
+
+### 3.2 Artificial Potential Field (APF)
+
+When an obstacle is detected, a repulsive force is applied to the position controller:
+
+**f_rep = k_rep × [(d_safe − d) / (d + ε)] × n_evade**
+
+Where:
+
+- k_rep: Repulsion gain.
+- d_safe: Required safety distance.
+- d: Measured obstacle distance.
+- ε: Small numerical constant.
+- n_evade: Unit vector indicating the avoidance direction.
+
+### 3.3 Dynamic Obstacle Replanning
+
+When a new obstacle appears:
+
+1. Detect the obstacle using LiDAR.
+2. Calculate an avoidance direction.
+3. Update trajectory boundary conditions.
+4. Generate a smooth avoidance trajectory.
+5. Continue tracking the updated trajectory.
+
+---
+
+## 4. Telemetry, Visualization, and Data Logging
+
+### 4.1 Real-Time Telemetry Dashboard
+
+A Tkinter-based desktop dashboard displays:
+
+- Mission progress and waypoint index.
+- Position error and individual axis errors.
+- Actual and desired roll, pitch, and yaw.
+- Quaternion error.
+- Collective thrust and control torques.
+- Obstacle detection and sensor noise information.
+
+### 4.2 Flight Path Visualization
+
+- **Waypoint markers:** Start, intermediate waypoints, and destination.
+- **Reference trajectory:** Analytical quintic path.
+- **Flight trail:** Actual quadrotor trajectory for tracking and clearance analysis.
+
+### 4.3 Automatic Simulation Outputs
+
+| Output File | Description |
+|---|---|
+| `uav_3d_flight_trajectory.png` | 3D flight trajectory and tracking performance |
+| `uav_paper_metrics_reproduction.png` | Benchmark evaluation plots |
+| `flight_coordinates.csv` | Timestamped reference and actual coordinates |
+
+---
+
+## 5. Standalone Benchmark Execution
+
+The standalone benchmark evaluates the quaternion-based attitude controller independently of the outer-loop position controller. This isolates attitude-tracking performance, convergence rates, and stability limits from trajectory planning and obstacle avoidance.
+
+---
+
+## 6. Simulation Results
+
+### 6.1 3D Flight Trajectory
+
+![3D Flight Trajectory](uav_3d_flight_trajectory.png)
+
+### 6.2 Simulation Screenshot
+
+![Simulation Screenshot](Screenshot%202026-10-20%20055837.png)
+
+The closed-loop simulation evaluates:
+
+- Quaternion error.
+- Angular-velocity error.
+- Backstepping error.
+- Control torque.
+
+The quaternion error should converge toward the identity quaternion:
+
+**q_err → [1, 0, 0, 0]ᵀ**
+
+The angular-velocity error should converge toward zero:
+
+**ω_err → [0, 0, 0]ᵀ**
+
+The backstepping error should also converge toward zero:
+
+**δ → [0, 0, 0]ᵀ**
+
+The control torque is expected to decrease as the system approaches the desired attitude.
+
+According to the reported research results, the angular-velocity error approaches zero at approximately **0.8 seconds**, while the backstepping error approaches zero at approximately **0.4 seconds**. The results also indicate quaternion-error convergence and decreasing control torque.
+
+---
+
+## . Conclusion
+
+This project presents a quaternion-based backstepping controller for quadrotor UAV attitude tracking.
+
+The rotational motion is modelled using quaternion kinematics and nonlinear rotational dynamics. Quaternion error measures the difference between actual and desired attitudes, while angular-velocity error measures the difference between actual and reference angular velocities.
+
+The controller uses a two-stage backstepping approach. First, a virtual control generates the desired angular-velocity error from the quaternion error. Next, the control torque is calculated using the backstepping error, nonlinear-dynamics compensation, reference motion, and fractional-power feedback.
+
+The final control law is:
+
+**τ = ω × (Jω) + Jω̇_ref + Jω̇_err,d − k₂Jδ^(1/3)**
+
+The backstepping error is:
+
+**δ = ω_err − ω_err,d**
+
+The simulation provides a framework for evaluating attitude tracking, convergence, and controller performance.
+
+---
+
+## . Controller Workflow
+
+```mermaid
+flowchart TD
+    A["Desired Attitude: q_ref"] --> B["Quaternion Error: q_err"]
+    C["Actual State: q, omega"] --> B
+    D["Desired Angular Velocity: omega_ref"] --> E["Angular Velocity Error"]
+    C --> E
+    B --> F["Virtual Control"]
+    E --> G["Backstepping Error: delta"]
+    F --> G
+    G --> H["Control Torque: tau"]
+    C --> H
+    H --> I["Quadrotor Rotational Dynamics"]
+    I --> C
+```
+
+---
+
+## . Research Paper
+
+**Title:** Quaternion-Based Attitude Tracking Control Design for UAVs
+
+**Authors:** Qain-Rong Lin and Jen-te Yu
+
+**Conference:** 2024 International Automatic Control Conference (CACS 2024)
+
+**Location:** National Taiwan University of Science and Technology, Taipei
+
+**Date:** November 1–3, 2024
+
+**DOI:** [10.1109/CACS63404.2024.10773309](https://doi.org/10.1109/CACS63404.2024.10773309)
+
