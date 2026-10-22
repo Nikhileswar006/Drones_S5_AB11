@@ -2398,7 +2398,7 @@ The second backstepping controller uses the fractional-power feedback law:
 
 The exponent is one-third. To understand why it is used, consider one component of the backstepping error.
 
-### 1. Understand the Scalar Error Equation
+### 22.1. Understand the Scalar Error Equation
 
 For one error component, the equation becomes:
 
@@ -2446,7 +2446,7 @@ The error increases toward zero.
 
 In both cases, the feedback drives the error toward zero.
 
-### 2. Derive the Finite-Time Convergence
+### 22.2. Derive the Finite-Time Convergence
 
 Consider a positive initial error. The differential equation is:
 
@@ -2528,7 +2528,7 @@ The absolute value makes the result valid for either sign of the initial error.
 
 This is the ideal convergence time for the scalar error equation.
 
-### 3. Why Not Use a Power of One?
+### 22.3. Why Not Use a Power of One?
 
 With linear feedback, the error equation would be:
 
@@ -2552,7 +2552,7 @@ With the one-third power:
 
 the error reaches zero in finite time for any finite initial error.
 
-### 4. Is One-Third the Only Possible Exponent?
+### 22.4. Is One-Third the Only Possible Exponent?
 
 No. More generally, a fractional-power feedback law can be written as:
 
@@ -2572,7 +2572,7 @@ p=\frac{1}{3}
 
 The one-third exponent is the particular choice used in the research paper. It provides finite-time convergence for the ideal error dynamics.
 
-### 5. Why Is This Important in Our Drone Project?
+### 22.5. Why Is This Important in Our Drone Project?
 
 The purpose of the one-third power is to reduce the backstepping error and make it reach zero in finite time under the assumed mathematical model.
 
@@ -3794,7 +3794,9 @@ This example illustrates the complete controller calculation, starting from the 
 
 ---
 
-###  Quadrotor Physical Modeling & Dynamics
+## 10. PyBullet Implementation Details
+
+### 10.1 Quadrotor Physical Modeling and Dynamics
 Modeled as a rigid body with 4 rotors in an 'X' frame:
 | Parameter | Value | Description |
 | :--- | :--- | :--- |
@@ -3807,7 +3809,7 @@ Modeled as a rigid body with 4 rotors in an 'X' frame:
 * **Collective Thrust ($T$):** Total upward force along body $Z$-axis ($\approx 11.8\text{ N}$ to hover).
 * **Control Torques ($\boldsymbol{\tau}$):** Roll ($\tau_x$), pitch ($\tau_y$), and yaw ($\tau_z$) torques in $\text{N}\cdot\text{m}$ computed by the quaternion controller.
 ---
-### 1. Trajectory Planning & Reactive Obstacle Avoidance
+### 10.2 Trajectory Planning and Reactive Obstacle Avoidance
 * **Straight Reference Corridor:** Direct straight lines connecting waypoints (`Start → WP1 → WP2 → ...`).
 * **How Obstacle Avoidance Works:**
   * **Normal Vector ($\hat{n}_{\text{lat}}$):** Computes a $90^\circ$ sideways horizontal vector perpendicular to the flight path.
@@ -3817,7 +3819,7 @@ Modeled as a rigid body with 4 rotors in an 'X' frame:
   * **Automatic Re-convergence:** Once past the obstacle, the drone merges **straight back onto the reference line**.
 * **Why This Approach:** Clearly proves active collision avoidance by showing the drone deviate from the straight mission line and return.
 ---
-### 2. Real-World Wind & Disturbance Model
+### 10.3 Real-World Wind and Disturbance Model
 Injected directly into the 6-DOF physics equations to simulate real outdoor flight:
 * **What Noise is Used:**
   * **Steady Crosswind:** Constant breeze vector (`[1.5, -1.1, 0.3] m/s`) causing continuous aerodynamic drag.
@@ -3825,7 +3827,7 @@ Injected directly into the 6-DOF physics equations to simulate real outdoor flig
   * **Air Turbulence & Propeller Wake:** Random force noise ($\sigma = 0.56\text{ N}$) and rotor torque noise ($\sigma = 0.05\text{ N}\cdot\text{m}$).
 * **Tuning:** Adjustable via `--noise-factor` (e.g. `0.0` for zero noise, `0.5` for mild breeze, `2.0` for heavy storm).
 ---
-### 3. Real-Time Telemetry Dashboard (HUD)
+### 10.4 Real-Time Telemetry Dashboard (HUD)
 A live telemetry panel on the right side of the screen displaying:
 * **Flight Time & Target:** Mission clock and active target waypoint index.
 * **Tracking Error ($\|e_p\|$):** Distance between the drone and the straight line (shows clearance while dodging).
@@ -3834,7 +3836,7 @@ A live telemetry panel on the right side of the screen displaying:
 * **Control States:** Internal backstepping error states ($z_1, z_2$) verifying closed-loop stability.
 
 
-## Results
+## 11. Results
 
 <p align="center">
   <img src="rohitdrones.jpeg" width="700">
@@ -3843,11 +3845,11 @@ A live telemetry panel on the right side of the screen displaying:
 ---
 
 
-# PyBullet 3D UAV Simulation Environment
+## 12. Supplementary PyBullet 3D Simulation Environment
 
 To validate the theoretical quaternion backstepping controller on realistic 6-DOF flight dynamics, a 3D simulation environment was developed using the **PyBullet physics engine**.
 
-## 1. Quadrotor Physical Modeling and Rigid-Body Dynamics
+### 12.1 Quadrotor Physical Modeling and Rigid-Body Dynamics
 
 | Physical Parameter | Value | Description |
 |---|---|---|
@@ -3864,9 +3866,9 @@ The environment applies body-frame forces and torques:
 
 ---
 
-## 2. Cascaded 3D Position Control and Trajectory Planning
+### 12.2 Cascaded 3D Position Control and Trajectory Planning
 
-### 2.1 Outer-Loop Position Controller
+#### 12.2.1 Outer-Loop Position Controller
 
 The desired acceleration is calculated as:
 
@@ -3882,7 +3884,7 @@ Where:
 - g: Gravitational acceleration.
 - z_W: World-frame vertical unit vector.
 
-### 2.2 Thrust and Attitude Extraction
+#### 12.2.2 Thrust and Attitude Extraction
 
 The desired body Z-axis is:
 
@@ -3894,7 +3896,7 @@ The collective thrust is:
 
 The reference quaternion (q_ref) and thrust (T) are supplied to the inner-loop attitude controller.
 
-### 2.3 Quintic Polynomial Trajectory Generation
+#### 12.2.3 Quintic Polynomial Trajectory Generation
 
 The fifth-order trajectory generator provides:
 
@@ -3903,7 +3905,7 @@ The fifth-order trajectory generator provides:
 - Rest-to-rest waypoint transitions.
 - Smooth trajectory stitching.
 
-### 2.4 Altitude Protection and Tilt Limiting
+#### 12.2.4 Altitude Protection and Tilt Limiting
 
 | Safety Constraint | Value |
 |---|---|
@@ -3912,9 +3914,9 @@ The fifth-order trajectory generator provides:
 
 ---
 
-## 3. Real-Time LiDAR Perception and Obstacle Avoidance
+### 12.3 Real-Time LiDAR Perception and Obstacle Avoidance
 
-### 3.1 Onboard Virtual LiDAR
+#### 12.3.1 Onboard Virtual LiDAR
 
 PyBullet ray casting (`p.rayTestBatch`) simulates a forward-facing LiDAR scanner to detect obstacles without requiring their coordinates in advance.
 
@@ -3925,7 +3927,7 @@ PyBullet ray casting (`p.rayTestBatch`) simulates a forward-facing LiDAR scanner
 | Maximum range | 2.5 m |
 | Update rate | 240 Hz |
 
-### 3.2 Artificial Potential Field (APF)
+#### 12.3.2 Artificial Potential Field (APF)
 
 When an obstacle is detected, a repulsive force is applied to the position controller:
 
@@ -3939,7 +3941,7 @@ Where:
 - ε: Small numerical constant.
 - n_evade: Unit vector indicating the avoidance direction.
 
-### 3.3 Dynamic Obstacle Replanning
+#### 12.3.3 Dynamic Obstacle Replanning
 
 When a new obstacle appears:
 
@@ -3951,9 +3953,9 @@ When a new obstacle appears:
 
 ---
 
-## 4. Telemetry, Visualization, and Data Logging
+### 12.4 Telemetry, Visualization, and Data Logging
 
-### 4.1 Real-Time Telemetry Dashboard
+#### 12.4.1 Real-Time Telemetry Dashboard
 
 A Tkinter-based desktop dashboard displays:
 
@@ -3964,13 +3966,13 @@ A Tkinter-based desktop dashboard displays:
 - Collective thrust and control torques.
 - Obstacle detection and sensor noise information.
 
-### 4.2 Flight Path Visualization
+#### 12.4.2 Flight Path Visualization
 
 - **Waypoint markers:** Start, intermediate waypoints, and destination.
 - **Reference trajectory:** Analytical quintic path.
 - **Flight trail:** Actual quadrotor trajectory for tracking and clearance analysis.
 
-### 4.3 Automatic Simulation Outputs
+#### 12.4.3 Automatic Simulation Outputs
 
 | Output File | Description |
 |---|---|
@@ -3980,19 +3982,19 @@ A Tkinter-based desktop dashboard displays:
 
 ---
 
-## 5. Standalone Benchmark Execution
+### 12.5 Standalone Benchmark Execution
 
 The standalone benchmark evaluates the quaternion-based attitude controller independently of the outer-loop position controller. This isolates attitude-tracking performance, convergence rates, and stability limits from trajectory planning and obstacle avoidance.
 
 ---
 
-## 6. Simulation Results
+### 12.6 Simulation Results
 
-### 6.1 3D Flight Trajectory
+#### 12.6.1 3D Flight Trajectory
 
 ![3D Flight Trajectory](uav_3d_flight_trajectory.png)
 
-### 6.2 Simulation Screenshot
+#### 12.6.2 Simulation Screenshot
 
 ![Simulation Screenshot](Screenshot%202026-10-20%20055837.png)
 
@@ -4021,7 +4023,7 @@ According to the reported research results, the angular-velocity error approache
 
 ---
 
-## . Conclusion
+## 13. Conclusion
 
 This project presents a quaternion-based backstepping controller for quadrotor UAV attitude tracking.
 
@@ -4041,7 +4043,7 @@ The simulation provides a framework for evaluating attitude tracking, convergenc
 
 ---
 
-## . Controller Workflow
+## 14. Controller Workflow
 
 ```mermaid
 flowchart TD
@@ -4060,7 +4062,7 @@ flowchart TD
 
 ---
 
-## . Research Paper
+## 15. Research Paper
 
 **Title:** Quaternion-Based Attitude Tracking Control Design for UAVs
 
