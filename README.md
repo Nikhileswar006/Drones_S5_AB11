@@ -3913,11 +3913,11 @@ A live telemetry panel on the right side of the screen displaying:
 ---
 
 
-## 12. Supplementary PyBullet 3D Simulation Environment
+## 8. Supplementary PyBullet 3D Simulation Environment
 
 To validate the theoretical quaternion backstepping controller on realistic 6-DOF flight dynamics, a 3D simulation environment was developed using the **PyBullet physics engine**.
 
-### 12.1 Quadrotor Physical Modeling and Rigid-Body Dynamics
+### 8.1 Quadrotor Physical Modeling and Rigid-Body Dynamics
 
 | Physical Parameter | Value | Description |
 |---|---|---|
@@ -3934,9 +3934,9 @@ The environment applies body-frame forces and torques:
 
 ---
 
-### 12.2 Cascaded 3D Position Control and Trajectory Planning
+### 8.2 Cascaded 3D Position Control and Trajectory Planning
 
-#### 12.2.1 Outer-Loop Position Controller
+#### 8.2.1 Outer-Loop Position Controller
 
 The desired acceleration is calculated as:
 
@@ -3952,7 +3952,7 @@ Where:
 - g: Gravitational acceleration.
 - z_W: World-frame vertical unit vector.
 
-#### 12.2.2 Thrust and Attitude Extraction
+#### 8.2.2 Thrust and Attitude Extraction
 
 The desired body Z-axis is:
 
@@ -3964,7 +3964,7 @@ The collective thrust is:
 
 The reference quaternion (q_ref) and thrust (T) are supplied to the inner-loop attitude controller.
 
-#### 12.2.3 Quintic Polynomial Trajectory Generation
+#### 8.2.3 Quintic Polynomial Trajectory Generation
 
 The fifth-order trajectory generator provides:
 
@@ -3973,7 +3973,7 @@ The fifth-order trajectory generator provides:
 - Rest-to-rest waypoint transitions.
 - Smooth trajectory stitching.
 
-#### 12.2.4 Altitude Protection and Tilt Limiting
+#### 8.2.4 Altitude Protection and Tilt Limiting
 
 | Safety Constraint | Value |
 |---|---|
@@ -3982,9 +3982,9 @@ The fifth-order trajectory generator provides:
 
 ---
 
-### 12.3 Real-Time LiDAR Perception and Obstacle Avoidance
+### 8.3 Real-Time LiDAR Perception and Obstacle Avoidance
 
-#### 12.3.1 Onboard Virtual LiDAR
+#### 8.3.1 Onboard Virtual LiDAR
 
 PyBullet ray casting (`p.rayTestBatch`) simulates a forward-facing LiDAR scanner to detect obstacles without requiring their coordinates in advance.
 
@@ -3995,7 +3995,7 @@ PyBullet ray casting (`p.rayTestBatch`) simulates a forward-facing LiDAR scanner
 | Maximum range | 2.5 m |
 | Update rate | 240 Hz |
 
-#### 12.3.2 Artificial Potential Field (APF)
+#### 8.3.2 Artificial Potential Field (APF)
 
 When an obstacle is detected, a repulsive force is applied to the position controller:
 
@@ -4009,7 +4009,7 @@ Where:
 - ε: Small numerical constant.
 - n_evade: Unit vector indicating the avoidance direction.
 
-#### 12.3.3 Dynamic Obstacle Replanning
+#### 8.3.3 Dynamic Obstacle Replanning
 
 When a new obstacle appears:
 
@@ -4021,9 +4021,9 @@ When a new obstacle appears:
 
 ---
 
-### 12.4 Telemetry, Visualization, and Data Logging
+### 8.4 Telemetry, Visualization, and Data Logging
 
-#### 12.4.1 Real-Time Telemetry Dashboard
+#### 8.4.1 Real-Time Telemetry Dashboard
 
 A Tkinter-based desktop dashboard displays:
 
@@ -4034,13 +4034,13 @@ A Tkinter-based desktop dashboard displays:
 - Collective thrust and control torques.
 - Obstacle detection and sensor noise information.
 
-#### 12.4.2 Flight Path Visualization
+#### 8.4.2 Flight Path Visualization
 
 - **Waypoint markers:** Start, intermediate waypoints, and destination.
 - **Reference trajectory:** Analytical quintic path.
 - **Flight trail:** Actual quadrotor trajectory for tracking and clearance analysis.
 
-#### 12.4.3 Automatic Simulation Outputs
+#### 8.4.3 Automatic Simulation Outputs
 
 | Output File | Description |
 |---|---|
@@ -4050,19 +4050,19 @@ A Tkinter-based desktop dashboard displays:
 
 ---
 
-### 12.5 Standalone Benchmark Execution
+### 8.5 Standalone Benchmark Execution
 
 The standalone benchmark evaluates the quaternion-based attitude controller independently of the outer-loop position controller. This isolates attitude-tracking performance, convergence rates, and stability limits from trajectory planning and obstacle avoidance.
 
 ---
 
-### 12.6 Simulation Results
+### 8.6 Simulation Results
 
-#### 12.6.1 3D Flight Trajectory
+#### 8.6.1 3D Flight Trajectory
 
 ![3D Flight Trajectory](uav_3d_flight_trajectory.png)
 
-#### 12.6.2 Simulation Screenshot
+#### 8.6.2 Simulation Screenshot
 
 ![Simulation Screenshot](Screenshot%202026-10-20%20055837.png)
 
@@ -4091,7 +4091,7 @@ According to the reported research results, the angular-velocity error approache
 
 ---
 
-## 13. Conclusion
+## 9. Conclusion
 
 This project presents a quaternion-based backstepping controller for quadrotor UAV attitude tracking.
 
@@ -4111,7 +4111,7 @@ The simulation provides a framework for evaluating attitude tracking, convergenc
 
 ---
 
-## 14. Controller Workflow
+## 10. Controller Workflow
 
 ```mermaid
 flowchart TD
@@ -4128,14 +4128,14 @@ flowchart TD
     I --> C
 ```
 
-## 15. Installation and Environment Setup
+## 11. Installation and Environment Setup
 
-### 15.1 Prerequisites
+### 11.1 Prerequisites
 - **Python:** 3.8, 3.9, 3.10, 3.11, or 3.12
 - **Operating System:** Windows, Linux, or macOS
 - **Hardware:** Standard CPU
 
-### 15.2 Create a Virtual Environment (Recommended)
+### 11.2 Create a Virtual Environment (Recommended)
 
 **On Windows (PowerShell / Command Prompt):**
 ```bash
@@ -4149,7 +4149,7 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-### 15.3 Install Dependencies
+### 11.3 Install Dependencies
 ```bash
 pip install pybullet numpy matplotlib scipy
 ```
@@ -4171,15 +4171,15 @@ pip install pybullet numpy matplotlib scipy
 
 ---
 
-## 16. How to Run the PyBullet Simulation
+## 12. How to Run the PyBullet Simulation
 
-### 16.1 Overview of Execution Modes
+### 12.1 Overview of Execution Modes
 1. **`run_3d_mission.py`**: Full 3D autonomous flight simulation with cascaded position control, quintic trajectory generation, 240 Hz virtual LiDAR perception, Artificial Potential Field (APF) obstacle avoidance, and Tkinter HUD telemetry.
 2. **`verify_paper_standalone.py`**: Isolated numerical benchmark validating the quaternion backstepping attitude controller directly against the CACS 2024 research paper metrics.
 
 ---
 
-### 16.2 Command-Line Flags Reference
+### 12.2 Command-Line Flags Reference
 
 | Flag | Type | Default | Description |
 |---|---|---|---|
@@ -4196,7 +4196,7 @@ pip install pybullet numpy matplotlib scipy
 
 ---
 
-### 16.3 Practical Command Prompt / Terminal Examples
+### 12.3 Practical Command Prompt / Terminal Examples
 
 #### A. Default 3D Flight Mission (Clear Airspace)
 ```bash
@@ -4230,14 +4230,14 @@ python run_3d_mission.py --obstacles --lidar --no_gui
 
 ---
 
-### 16.4 Standalone Paper Benchmark Execution
+### 12.4 Standalone Paper Benchmark Execution
 ```bash
 python verify_paper_standalone.py
 ```
 
 ---
 
-### 16.5 Interactive Mouse & Camera Controls in PyBullet
+### 12.5 Interactive Mouse & Camera Controls in PyBullet
 - **Left Mouse Click + Drag:** Rotate camera view around the quadrotor.
 - **Mouse Scroll Wheel:** Zoom in and zoom out.
 - **Right Mouse Click + Drag:** Pan camera horizontally and vertically.
@@ -4245,14 +4245,14 @@ python verify_paper_standalone.py
 
 ---
 
-### 16.6 Automatic Simulation Outputs
+### 12.6 Automatic Simulation Outputs
 - `uav_3d_flight_trajectory.png`: Publication-grade 3D trajectory plot.
 - `uav_paper_metrics_reproduction.png`: Attitude tracking, quaternion error, angular velocity error, and control torque plots.
 - `flight_coordinates.csv`: Timestamped logs containing reference and actual coordinates.
 
 ---
 
-## 17. References
+## 13. References
 
 1. **Q.-R. Lin and J.-T. Yu**, "Quaternion-Based Attitude Tracking Control Design for UAVs," in *Proceedings of the 2024 International Automatic Control Conference (CACS 2024)*, Taipei, Taiwan, Nov. 1–3, 2024. DOI: [10.1109/CACS63404.2024.10773309](https://doi.org/10.1109/CACS63404.2024.10773309).
 2. **E. Coumans and Y. Bai**, "PyBullet, a Python module for physics simulation for games, robotics and machine learning," GitHub Repository: [https://github.com/bulletphysics/bullet3](https://github.com/bulletphysics/bullet3), 2016–2024.
