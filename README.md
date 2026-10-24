@@ -78,8 +78,18 @@
   - [12.6 Simulation Results](#126-simulation-results)
 - [13. Conclusion](#13-conclusion)
 - [14. Controller Workflow](#14-controller-workflow)
-- [15. Research Paper](#15-research-paper)
-
+- [15. Installation and Environment Setup](#15-installation-and-environment-setup)
+  - [15.1 Prerequisites](#151-prerequisites)
+  - [15.2 Create a Virtual Environment (Recommended)](#152-create-a-virtual-environment-recommended)
+  - [15.3 Install Dependencies](#153-install-dependencies)
+- [16. How to Run the PyBullet Simulation](#16-how-to-run-the-pybullet-simulation)
+  - [16.1 Overview of Execution Modes](#161-overview-of-execution-modes)
+  - [16.2 Command-Line Flags Reference](#162-command-line-flags-reference)
+  - [16.3 Practical Command Prompt / Terminal Examples](#163-practical-command-prompt--terminal-examples)
+  - [16.4 Standalone Paper Benchmark Execution](#164-standalone-paper-benchmark-execution)
+  - [16.5 Interactive Mouse & Camera Controls in PyBullet](#165-interactive-mouse--camera-controls-in-pybullet)
+  - [16.6 Automatic Simulation Outputs](#166-automatic-simulation-outputs)
+- [17. References](#17-references)
 ---
 
 # Abstract
@@ -4118,19 +4128,135 @@ flowchart TD
     I --> C
 ```
 
+## 15. Installation and Environment Setup
+
+### 15.1 Prerequisites
+- **Python:** 3.8, 3.9, 3.10, 3.11, or 3.12
+- **Operating System:** Windows, Linux, or macOS
+- **Hardware:** Standard CPU
+
+### 15.2 Create a Virtual Environment (Recommended)
+
+**On Windows (PowerShell / Command Prompt):**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+**On Linux / macOS:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 15.3 Install Dependencies
+```bash
+pip install pybullet numpy matplotlib scipy
+```
+
+> **Note on Tkinter (GUI Dashboard):**  
+> - **Windows & macOS:** Included automatically with Python.  
+> - **Ubuntu / Debian Linux:** If missing, install it via:
+>   ```bash
+>   sudo apt-get update && sudo apt-get install python3-tk
+>   ```
+
+| Package | Minimum Version | Purpose |
+|---|---|---|
+| `pybullet` | `≥ 3.2.5` | 6-DOF rigid-body dynamics and virtual LiDAR raycasting |
+| `numpy` | `≥ 1.21.0` | Matrix operations, quaternion algebra, and state updates |
+| `matplotlib` | `≥ 3.4.0` | 3D flight trajectory plots and metric figures |
+| `scipy` | `≥ 1.7.0` | Numerical interpolation and matrix functions |
+| `tkinter` | Standard library | Real-time heads-up telemetry display (HUD) |
+
 ---
 
-## 15. Research Paper
+## 16. How to Run the PyBullet Simulation
 
-**Title:** Quaternion-Based Attitude Tracking Control Design for UAVs
+### 16.1 Overview of Execution Modes
+1. **`run_3d_mission.py`**: Full 3D autonomous flight simulation with cascaded position control, quintic trajectory generation, 240 Hz virtual LiDAR perception, Artificial Potential Field (APF) obstacle avoidance, and Tkinter HUD telemetry.
+2. **`verify_paper_standalone.py`**: Isolated numerical benchmark validating the quaternion backstepping attitude controller directly against the CACS 2024 research paper metrics.
 
-**Authors:** Qain-Rong Lin and Jen-te Yu
+---
 
-**Conference:** 2024 International Automatic Control Conference (CACS 2024)
+### 16.2 Command-Line Flags Reference
 
-**Location:** National Taiwan University of Science and Technology, Taipei
+| Flag | Type | Default | Description |
+|---|---|---|---|
+| `--lidar` | Flag | `False` | Pure sensor-based reactive navigation using onboard 15-ray LiDAR. |
+| `--obstacles` | Flag | `False` | Spawns physical obstacles directly in the flight corridor between waypoints. |
+| `--popup_obstacle` | Flag | `False` | Spawns an unexpected obstacle directly in front of the drone mid-flight. |
+| `--start X Y Z` | 3 Floats | `0.0 0.0 0.5` | Sets custom starting coordinates (in meters). |
+| `--goal X Y Z` | 3 Floats | `4.0 4.0 2.5` | Sets custom destination coordinates (in meters). |
+| `--wp X Y Z ...` | Floats | `None` | Intermediate waypoints sequence. |
+| `--duration` | Float | `14.0` | Flight duration in seconds along the trajectory. |
+| `--curved` | Flag | `False` | Generates a 3D parabolic arch and lateral curve. |
+| `--noise` | Float | `0.0` | Adds Gaussian sensor noise standard deviation. |
+| `--no_gui` | Flag | `False` | Headless execution without PyBullet GUI window. |
 
-**Date:** November 1–3, 2024
+---
 
-**DOI:** [10.1109/CACS63404.2024.10773309](https://doi.org/10.1109/CACS63404.2024.10773309)
+### 16.3 Practical Command Prompt / Terminal Examples
+
+#### A. Default 3D Flight Mission (Clear Airspace)
+```bash
+python run_3d_mission.py
+```
+
+#### B. Autonomous LiDAR Reactive Avoidance (Blind Mode)
+```bash
+python run_3d_mission.py --obstacles --lidar
+```
+
+#### C. Dynamic "Pop-Up" Obstacle Evasion
+```bash
+python run_3d_mission.py --lidar --popup_obstacle
+```
+
+#### D. Custom Flight Path with Obstacles and LiDAR
+```bash
+python run_3d_mission.py --start 0.0 0.0 0.5 --wp 1.5 1.0 1.8  2.5 3.0 2.8  1.0 4.0 2.2 --goal 5.0 5.0 2.5 --obstacles --lidar
+```
+
+#### E. Robustness Testing with Sensor Noise
+```bash
+python run_3d_mission.py --obstacles --lidar --noise 0.03 --duration 16.0
+```
+
+#### F. Headless Execution
+```bash
+python run_3d_mission.py --obstacles --lidar --no_gui
+```
+
+---
+
+### 16.4 Standalone Paper Benchmark Execution
+```bash
+python verify_paper_standalone.py
+```
+
+---
+
+### 16.5 Interactive Mouse & Camera Controls in PyBullet
+- **Left Mouse Click + Drag:** Rotate camera view around the quadrotor.
+- **Mouse Scroll Wheel:** Zoom in and zoom out.
+- **Right Mouse Click + Drag:** Pan camera horizontally and vertically.
+- **Tkinter Dashboard:** Click **▶ START SIMULATION** to initiate autonomous flight or click **✕ EXIT** to stop simulation and export CSV flight logs.
+
+---
+
+### 16.6 Automatic Simulation Outputs
+- `uav_3d_flight_trajectory.png`: Publication-grade 3D trajectory plot.
+- `uav_paper_metrics_reproduction.png`: Attitude tracking, quaternion error, angular velocity error, and control torque plots.
+- `flight_coordinates.csv`: Timestamped logs containing reference and actual coordinates.
+
+---
+
+## 17. References
+
+1. **Q.-R. Lin and J.-T. Yu**, "Quaternion-Based Attitude Tracking Control Design for UAVs," in *Proceedings of the 2024 International Automatic Control Conference (CACS 2024)*, Taipei, Taiwan, Nov. 1–3, 2024. DOI: [10.1109/CACS63404.2024.10773309](https://doi.org/10.1109/CACS63404.2024.10773309).
+2. **E. Coumans and Y. Bai**, "PyBullet, a Python module for physics simulation for games, robotics and machine learning," GitHub Repository: [https://github.com/bulletphysics/bullet3](https://github.com/bulletphysics/bullet3), 2016–2024.
+3. **O. Khatib**, "Real-Time Obstacle Avoidance for Robot Manipulators and Mobile Robots," *The International Journal of Robotics Research*, vol. 5, no. 1, pp. 90–98, 1986. DOI: [10.1177/027836498600500106](https://doi.org/10.1177/027836498600500106).
+4. **M. W. Spong, S. Hutchinson, and M. Vidyasagar**, *Robot Modeling and Control*, 2nd ed. Hoboken, NJ: John Wiley & Sons, 2020.
+5. **D. Mellinger and V. Kumar**, "Minimum snap trajectory generation and control for quadrotors," in *2011 IEEE International Conference on Robotics and Automation (ICRA)*, Shanghai, China, 2011, pp. 2520–2525. DOI: [10.1109/ICRA.2011.5980409](https://doi.org/10.1109/ICRA.2011.5980409).
 
