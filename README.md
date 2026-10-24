@@ -4257,6 +4257,5 @@ python verify_paper_standalone.py
 1. **Q.-R. Lin and J.-T. Yu**, "Quaternion-Based Attitude Tracking Control Design for UAVs," in *Proceedings of the 2024 International Automatic Control Conference (CACS 2024)*, Taipei, Taiwan, Nov. 1–3, 2024. DOI: [10.1109/CACS63404.2024.10773309](https://doi.org/10.1109/CACS63404.2024.10773309).
 2. **E. Coumans and Y. Bai**, "PyBullet, a Python module for physics simulation for games, robotics and machine learning," GitHub Repository: [https://github.com/bulletphysics/bullet3](https://github.com/bulletphysics/bullet3), 2016–2024.
 3. **O. Khatib**, "Real-Time Obstacle Avoidance for Robot Manipulators and Mobile Robots," *The International Journal of Robotics Research*, vol. 5, no. 1, pp. 90–98, 1986. DOI: [10.1177/027836498600500106](https://doi.org/10.1177/027836498600500106).
-4. **M. W. Spong, S. Hutchinson, and M. Vidyasagar**, *Robot Modeling and Control*, 2nd ed. Hoboken, NJ: John Wiley & Sons, 2020.
-5. **D. Mellinger and V. Kumar**, "Minimum snap trajectory generation and control for quadrotors," in *2011 IEEE International Conference on Robotics and Automation (ICRA)*, Shanghai, China, 2011, pp. 2520–2525. DOI: [10.1109/ICRA.2011.5980409](https://doi.org/10.1109/ICRA.2011.5980409).
+4. **D. Mellinger and V. Kumar**, "Minimum snap trajectory generation and control for quadrotors," in *2011 IEEE International Conference on Robotics and Automation (ICRA)*, Shanghai, China, 2011, pp. 2520–2525. DOI: [10.1109/ICRA.2011.5980409](https://doi.org/10.1109/ICRA.2011.5980409).
 
