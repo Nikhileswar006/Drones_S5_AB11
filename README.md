@@ -3904,7 +3904,7 @@ A live telemetry panel on the right side of the screen displaying:
 * **Control States:** Internal backstepping error states ($z_1, z_2$) verifying closed-loop stability.
 
 
-## 11. Results
+## 7. Results
 
 <p align="center">
   <img src="rohitdrones.jpeg" width="700">
