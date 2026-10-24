@@ -2825,11 +2825,11 @@ Together, Equations (16)–(23) establish the second backstepping stage: define 
 
 
 
-# Complete Numerical Example of the Backstepping Controller
+#5 Complete Numerical Example of the Backstepping Controller
 
 This numerical example demonstrates the complete calculation of the quaternion-based backstepping controller, starting from the actual and desired states and ending with the total control torque.
 
-## 1. Given Parameters
+## 5.1. Given Parameters
 
 The inertia matrix used in the research paper is:
 
@@ -2911,7 +2911,7 @@ Our objective is to calculate the quaternion error, desired angular velocity err
 
 ---
 
-## 2. Calculate the Quaternion Error — Equation (10)
+## 5.2. Calculate the Quaternion Error — Equation (10)
 
 The paper defines the quaternion error as:
 
@@ -2987,7 +2987,7 @@ The objective of the controller is to drive the quaternion error toward this ide
 
 ---
 
-## 3. Calculate the Desired Angular Velocity Error — Equation (13)
+## 5.3. Calculate the Desired Angular Velocity Error — Equation (13)
 
 The virtual-control equation in the paper is:
 
@@ -3117,7 +3117,7 @@ This is the virtual angular velocity error generated from the attitude error.
 
 ---
 
-## 4. Calculate the Angular Velocity Tracking Error — Equation (11)
+## 5.4. Calculate the Angular Velocity Tracking Error — Equation (11)
 
 The paper defines the angular velocity error as:
 
@@ -3165,7 +3165,7 @@ This represents the difference between the actual angular velocity and the refer
 
 ---
 
-## 5. Calculate the Backstepping Error — Equation (16)
+## 5.5. Calculate the Backstepping Error — Equation (16)
 
 The paper defines the backstepping error as:
 
@@ -3213,7 +3213,7 @@ This is the error that the second stage of the controller must drive toward zero
 
 ---
 
-## 6. Calculate the Quaternion Error Derivative — Equation (12)
+## 5.6. Calculate the Quaternion Error Derivative — Equation (12)
 
 The paper gives the quaternion error dynamics as:
 
@@ -3287,7 +3287,7 @@ This derivative describes how the quaternion error changes at the selected insta
 
 ---
 
-## 7. Calculate the Derivative of the Desired Angular Velocity Error — Equation (20)
+## 5.7. Calculate the Derivative of the Desired Angular Velocity Error — Equation (20)
 
 The paper obtains the derivative of the virtual control by differentiating Equation (13):
 
@@ -3378,7 +3378,7 @@ This term accounts for the change in the virtual-control command.
 
 ---
 
-## 8. Calculate the Gyroscopic Term — Equation (9)
+## 5.8. Calculate the Gyroscopic Term — Equation (9)
 
 The rotational dynamics contain the term:
 
@@ -3445,7 +3445,7 @@ This is the gyroscopic contribution to the rotational dynamics.
 
 ---
 
-## 9. Calculate the Compensation Torque — Equation (21)
+## 5.9. Calculate the Compensation Torque — Equation (21)
 
 The paper defines the compensation torque as:
 
@@ -3560,7 +3560,7 @@ This is the compensation torque.
 
 ---
 
-## 10. Calculate the One-Third Power of the Backstepping Error
+## 5.10. Calculate the One-Third Power of the Backstepping Error
 
 Equation (22) requires the one-third power of the backstepping error.
 
@@ -3604,7 +3604,7 @@ The fractional-power feedback uses the real cube root, including when error comp
 
 ---
 
-## 11. Calculate the Feedback Torque — Equation (22)
+## 5.11. Calculate the Feedback Torque — Equation (22)
 
 The paper defines the second torque component as:
 
@@ -3663,7 +3663,7 @@ This is the fractional-power feedback torque.
 
 ---
 
-## 12. Calculate the Total Backstepping Control Torque
+## 5.12. Calculate the Total Backstepping Control Torque
 
 The total control torque is the sum of the two torque components:
 
@@ -3710,7 +3710,7 @@ This is the total backstepping control torque for the selected state.
 
 ---
 
-## 13. Verify the Controller — Equation (23)
+## 5.13. Verify the Controller — Equation (23)
 
 The paper specifies the desired backstepping error dynamics as:
 
@@ -3753,7 +3753,7 @@ This is the target error behaviour produced by the compensation and feedback tor
 
 ---
 
-## 14. Final Numerical Results
+## 5.14. Final Numerical Results
 
 The quaternion error is:
 
@@ -3862,9 +3862,9 @@ This example illustrates the complete controller calculation, starting from the 
 
 ---
 
-## 10. PyBullet Implementation Details
+## 6. PyBullet Implementation Details
 
-### 10.1 Quadrotor Physical Modeling and Dynamics
+### 6.1 Quadrotor Physical Modeling and Dynamics
 Modeled as a rigid body with 4 rotors in an 'X' frame:
 | Parameter | Value | Description |
 | :--- | :--- | :--- |
@@ -3877,7 +3877,7 @@ Modeled as a rigid body with 4 rotors in an 'X' frame:
 * **Collective Thrust ($T$):** Total upward force along body $Z$-axis ($\approx 11.8\text{ N}$ to hover).
 * **Control Torques ($\boldsymbol{\tau}$):** Roll ($\tau_x$), pitch ($\tau_y$), and yaw ($\tau_z$) torques in $\text{N}\cdot\text{m}$ computed by the quaternion controller.
 ---
-### 10.2 Trajectory Planning and Reactive Obstacle Avoidance
+### 6.2 Trajectory Planning and Reactive Obstacle Avoidance
 * **Straight Reference Corridor:** Direct straight lines connecting waypoints (`Start → WP1 → WP2 → ...`).
 * **How Obstacle Avoidance Works:**
   * **Normal Vector ($\hat{n}_{\text{lat}}$):** Computes a $90^\circ$ sideways horizontal vector perpendicular to the flight path.
@@ -3887,7 +3887,7 @@ Modeled as a rigid body with 4 rotors in an 'X' frame:
   * **Automatic Re-convergence:** Once past the obstacle, the drone merges **straight back onto the reference line**.
 * **Why This Approach:** Clearly proves active collision avoidance by showing the drone deviate from the straight mission line and return.
 ---
-### 10.3 Real-World Wind and Disturbance Model
+### 6.3 Real-World Wind and Disturbance Model
 Injected directly into the 6-DOF physics equations to simulate real outdoor flight:
 * **What Noise is Used:**
   * **Steady Crosswind:** Constant breeze vector (`[1.5, -1.1, 0.3] m/s`) causing continuous aerodynamic drag.
@@ -3895,7 +3895,7 @@ Injected directly into the 6-DOF physics equations to simulate real outdoor flig
   * **Air Turbulence & Propeller Wake:** Random force noise ($\sigma = 0.56\text{ N}$) and rotor torque noise ($\sigma = 0.05\text{ N}\cdot\text{m}$).
 * **Tuning:** Adjustable via `--noise-factor` (e.g. `0.0` for zero noise, `0.5` for mild breeze, `2.0` for heavy storm).
 ---
-### 10.4 Real-Time Telemetry Dashboard (HUD)
+### 6.4 Real-Time Telemetry Dashboard (HUD)
 A live telemetry panel on the right side of the screen displaying:
 * **Flight Time & Target:** Mission clock and active target waypoint index.
 * **Tracking Error ($\|e_p\|$):** Distance between the drone and the straight line (shows clearance while dodging).
